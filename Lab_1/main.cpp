@@ -1,7 +1,7 @@
 #include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp> // Отвечает за базовый набор функций предоставляемый библиотекой OpenCV
-#include <opencv2/highgui/highgui.hpp> // Содержит функции для взаимодействия с графическим движком операционной системы:
-// считывание и запись графических файлов, а также взаимодействие с графическим оконным интерфейсом.
+#include <opencv2/core/core.hpp> // РћС‚РІРµС‡Р°РµС‚ Р·Р° Р±Р°Р·РѕРІС‹Р№ РЅР°Р±РѕСЂ С„СѓРЅРєС†РёР№ РїСЂРµРґРѕСЃС‚Р°РІР»СЏРµРјС‹Р№ Р±РёР±Р»РёРѕС‚РµРєРѕР№ OpenCV
+#include <opencv2/highgui/highgui.hpp> // РЎРѕРґРµСЂР¶РёС‚ С„СѓРЅРєС†РёРё РґР»СЏ РІР·Р°РёРјРѕРґРµР№СЃС‚РІРёСЏ СЃ РіСЂР°С„РёС‡РµСЃРєРёРј РґРІРёР¶РєРѕРј РѕРїРµСЂР°С†РёРѕРЅРЅРѕР№ СЃРёСЃС‚РµРјС‹:
+// СЃС‡РёС‚С‹РІР°РЅРёРµ Рё Р·Р°РїРёСЃСЊ РіСЂР°С„РёС‡РµСЃРєРёС… С„Р°Р№Р»РѕРІ, Р° С‚Р°РєР¶Рµ РІР·Р°РёРјРѕРґРµР№СЃС‚РІРёРµ СЃ РіСЂР°С„РёС‡РµСЃРєРёРј РѕРєРѕРЅРЅС‹Рј РёРЅС‚РµСЂС„РµР№СЃРѕРј.
 
 using namespace cv;
 using namespace std;
@@ -44,7 +44,7 @@ void Channel_function(Mat& image)
 	//imshow("spl3", spl[2]);
 	//waitKey(0);
 
-	// Вывод нескольких изображений на экран
+	// Р’С‹РІРѕРґ РЅРµСЃРєРѕР»СЊРєРёС… РёР·РѕР±СЂР°Р¶РµРЅРёР№ РЅР° СЌРєСЂР°РЅ
 	int width = 3 * image.cols;
 	int height = 2 * image.rows;
 
@@ -84,8 +84,8 @@ int main()
 	Mat image;
 	//image = imread("star_sky_plain.jpg", IMREAD_COLOR);
 	image = imread("Cutie_cat.jpg", IMREAD_COLOR);
-	//image = imread("C://My_programs//8_semester//image_processing//Lab_1//Task_1//Task_1//Task_1//Cutie_cat.jpg", IMREAD_COLOR); // Работает
-	//image = imread("C:/My_programs/8_semester/image_processing/Lab_1/Task_1/Task_1/Task_1/Cutie_cat.jpg", IMREAD_COLOR); // Работает
+	//image = imread("C://My_programs//8_semester//image_processing//Lab_1//Task_1//Task_1//Task_1//Cutie_cat.jpg", IMREAD_COLOR); // ГђГ ГЎГ®ГІГ ГҐГІ
+	//image = imread("C:/My_programs/8_semester/image_processing/Lab_1/Task_1/Task_1/Task_1/Cutie_cat.jpg", IMREAD_COLOR); // ГђГ ГЎГ®ГІГ ГҐГІ
 	//image = imread("cross_0256x0256.png", IMREAD_COLOR);
 	//image = imread("night-sky-stars-starry-sky-1190358.jpg", IMREAD_COLOR);
 	//image = imread("1339.jpg", IMREAD_COLOR);
@@ -103,37 +103,5 @@ int main()
 	//cout << image.data[0] << endl;
 	//cout << image.at<0>(Point(0, 0));
 
-	Mat mat_1 = Mat::zeros(image.rows, image.cols, CV_8U);
-	Mat mat_2 = Mat::zeros(image.rows, image.cols, CV_8U);
-	Mat mat_3 = Mat::zeros(image.rows, image.cols, CV_8U);
-
-	cout << "Size one channel photo before insert" << endl;
-	cout << mat_1.size() << endl;
-	cout << mat_2.size() << endl;
-	cout << mat_3.size() << endl;
-
-	for (int i = 0; i < image.rows; i++)
-	{
-		Vec3b* my_vector = image.ptr<Vec3b>(i);
-		//Vec3b* my_vector_1 = mat_1.ptr<Vec3b>(i);
-		//Vec3b* my_vector_2 = mat_2.ptr<Vec3b>(i);
-		//Vec3b* my_vector_3 = mat_3.ptr<Vec3b>(i);
-		for (int j = 0; j < image.cols; j++)
-		{
-			//my_vector_1[j] = Vec3b(my_vector[j][0], my_vector_1[j][1], my_vector_1[j][2]);
-			//my_vector_2[j] = Vec3b(my_vector_2[j][0], my_vector[j][1], my_vector_2[j][2]);
-			//my_vector_3[j] = Vec3b(my_vector_3[j][0], my_vector_3[j][1], my_vector[j][2]);
-			my_vector[j] = Vec3b(my_vector[0][j], my_vector[1][j], my_vector[2][j]);
-			//my_vector_1[j] = Vec3b(my_vector[0][j], my_vector_1[1][j], my_vector_1[2][j]);
-			//my_vector_2[j] = Vec3b(my_vector_2[0][j], my_vector[1][j], my_vector_2[2][j]);
-			//my_vector_3[j] = Vec3b(my_vector_3[0][j], my_vector_3[1][j], my_vector[2][j]);
-		}
-	}
-
-	cout << "Size one channel photo after insert" << endl;
-	cout << mat_1.size() << endl;
-	cout << mat_2.size() << endl;
-	cout << mat_3.size() << endl;
-
-	//Channel_function(image);
+	Channel_function(image);
 }
