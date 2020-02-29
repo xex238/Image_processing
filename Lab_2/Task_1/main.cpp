@@ -40,10 +40,6 @@ int main()
 		int value = -1;
 		for (int j = 0; j < black_white_image.cols / 3; j++)
 		{
-			if (j % 3 == 0)
-			{
-				value++;
-			}
 			black_white_image.at<Vec3b>(i, j) = Vec3b(j, j, j);
 		}
 	}
