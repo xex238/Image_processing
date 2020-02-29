@@ -44,7 +44,8 @@ int main()
 		}
 	}
 
-	Mat gamma_image = Gamma_correction(black_white_image, 1.2);
+	float coefficient = 2.3;
+	Mat gamma_image = Gamma_correction(black_white_image, coefficient);
 
 	Mat final_image = Mat(height * 2, width, black_white_image.type());
 	Rect imageROI = Rect(0, 0, black_white_image.cols, black_white_image.rows);
