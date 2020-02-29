@@ -37,7 +37,6 @@ int main()
 
 	for (int i = 0; i < black_white_image.rows; i++)
 	{
-		int value = -1;
 		for (int j = 0; j < black_white_image.cols / 3; j++)
 		{
 			black_white_image.at<Vec3b>(i, j) = Vec3b(j, j, j);
