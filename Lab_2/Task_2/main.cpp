@@ -1,64 +1,69 @@
 #include <opencv2/opencv.hpp>
+#include <iostream>
+#include <ostream>
 
 using namespace cv;
+using namespace std;
 
-//int main()
-//{
-//
-// Mat image(Mat::zeros(800, 600, CV_8U));
-// int fontFace(FONT_HERSHEY_PLAIN);
-// double fontScale(2.0);
-// int thickness(3);
-// Point textOrg(50, 50);
-// putText(image, "Hello, world!", textOrg, fontFace, fontScale, Scalar::all(255), thickness, 8);
-// imshow("Hello, word! Press any key...", image);
-// waitKey(0);
-// return 0;
-//}
+Mat Gamma_correction(Mat& image, float correction)
+{
+	Mat output_image = image.clone();
+	for (int i = 0; i < output_image.rows; i++)
+	{
+		for (int j = 0; j < output_image.cols / 3; j++)
+		{
+			Vec3b value = output_image.at<Vec3b>(i, j);
+			float x = pow(((float)value[0] / 255), correction) * 255;
+			int new_x = round(x);
+
+			//cout << "value[0] = " << value[0] << endl;
+			//cout << "new_x = " << new_x << endl << endl;
+
+			output_image.at<Vec3b>(i, j) = Vec3b(new_x, new_x, new_x);
+		}
+	}
+	return output_image;
+}
 
 int main()
 {
+	int height = 60;
+	int width = 768;
 
-	Mat img(Mat::zeros(160, 768, CV_8UC1));
+	Mat black_white_image(height, width, CV_8UC1, Scalar(100));
 
-	int fontFace(FONT_HERSHEY_PLAIN);
-	double fontScale(2.0);
-	int thickness(3);
-	Point textOrg(50, 50);
-	int pix = 0;
-	// Îòîáðàçèòü íà èçîáðàæåíèè áåëóþ ïóíêòèðíóþ ñåòêó
-	for (int i = 0; i < 80; i++)
+	cout << "rows = " << black_white_image.rows << endl;
+	cout << "columns = " << black_white_image.cols << endl;
+
+	for (int i = 0; i < black_white_image.rows; i++)
 	{
-
-		for (int j = 0; j < img.cols; j = j + 30)
-
+		int value = -5;
+		for (int j = 0; j < black_white_image.cols; j++)
 		{
-			for (int jf = 0; jf < 30; jf++)
-				if (jf + j < img.cols)
-					img.at<uint8_t>(i, j + jf) = pix;
-
-
-			pix = pix + 10;
-			//img.at<Vec3b>(i, j)[1] = 255;
-			//img.at<Vec3b>(i, j)[2] = 255;
+			if (j % 30 == 0)
+			{
+				value = value + 10;
+			}
+			black_white_image.at<uint8_t>(i, j) = value;
 		}
-		pix = 0;
 	}
-	Mat img2(Mat::zeros(160, 768, CV_8UC1));
-	img.convertTo(img2, CV_32FC1, 1.0 / 255);
-	//putText(image, "Hello, world!", textOrg, fontFace, fontScale, Scalar::all(255), thickness, 8);
-	for (int i = 80; i < 160; i++)
-		for (int j = 0; j < img2.cols; j++)
 
-		{
-			img2.at<float_t>(i, j) = pow(img2.at<float_t>(i - 80, j), 2.2);
+	float coefficient = 2.3;
+	Mat gamma_image = Gamma_correction(black_white_image, coefficient);
 
-			//img.at<Vec3b>(i, j)[1] = 255;
-			//img.at<Vec3b>(i, j)[2] = 255;
-		}
-	img2.convertTo(img, CV_8UC1, 255);
-	imshow("", img);
-	//imshow(image);
+	Mat final_image = Mat(height * 2, width, black_white_image.type());
+	Rect imageROI = Rect(0, 0, black_white_image.cols, black_white_image.rows);
+
+	imageROI.x = 0;
+	imageROI.y = 0;
+	black_white_image.copyTo(final_image(imageROI));
+
+	imageROI.x = 0;
+	imageROI.y = black_white_image.rows;
+	gamma_image.copyTo(final_image(imageROI));
+
+	namedWindow("My final image", WINDOW_AUTOSIZE);
+	imshow("My final image", final_image);
 	waitKey(0);
 	return 0;
 }
