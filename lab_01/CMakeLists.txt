@@ -1,0 +1,2 @@
+add_subdirectory(part_1)
+add_subdirectory(part_2)
