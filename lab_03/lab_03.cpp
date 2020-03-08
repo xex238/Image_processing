@@ -66,13 +66,13 @@ Mat Global_binarization(Mat& bw_mat)
 {
 	//Mat result = Step_average_binarization(bw_mat);
 	Mat result = Step_median_binarization(bw_mat);
-	// Реализовать метод Отцу глобальной бинаризации
+	// ГђГҐГ Г«ГЁГ§Г®ГўГ ГІГј Г¬ГҐГІГ®Г¤ ГЋГІГ¶Гі ГЈГ«Г®ГЎГ Г«ГјГ­Г®Г© ГЎГЁГ­Г Г°ГЁГ§Г Г¶ГЁГЁ
 	return result;
 }
 
 Mat Local_binarization(Mat& bw_mat)
 {
-	// Реализовать метод Ниблека локальной бинаризации
+	// ГђГҐГ Г«ГЁГ§Г®ГўГ ГІГј Г¬ГҐГІГ®Г¤ ГЌГЁГЎГ«ГҐГЄГ  Г«Г®ГЄГ Г«ГјГ­Г®Г© ГЎГЁГ­Г Г°ГЁГ§Г Г¶ГЁГЁ
 }
 
 int main()
