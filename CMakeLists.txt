@@ -1,65 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(novitskiy_d_n)
+project(cw_01)
 
-# Determine the platform
-# -----------------------------------------------------------------------
-if(WIN32)
-  set(PLATFORM_NAME "win")
-elseif(UNIX)
-  set(PLATFORM_NAME "unix")
-else()
-  message(fatal_error "Unsupported platform")
-endif()
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
+add_executable(cw_01 cw_01.cpp)
 
-# Determine platform bits
-# -----------------------------------------------------------------------
-if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-  set(PLATFORM_BITNESS "32")
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(PLATFORM_BITNESS "64")
-else()
-  message(fatal_error "Unsupported bitness")
-endif()
+#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Cutie_cat.jpg DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-
-# Platform is the pair of system and its bitness
-# -----------------------------------------------------------------------
-set(PLATFORM "${PLATFORM_NAME}${PLATFORM_BITNESS}")
-message( "Platform is ${PLATFORM}")
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(COMPILER_ID "icl")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set(COMPILER_ID "gcc")
-elseif(MSVC14)
-  set(COMPILER_ID "vc2015")
-elseif(MSVC15)
-  set(COMPILER_ID "vc2017")
-else()
-  set(COMPILER_ID "unknown")
-endif()
-message("Compiler id is ${COMPILER_ID}")
-
-set(PLATFORM "${PLATFORM}.${COMPILER_ID}")
-message("Build suffix is ${PLATFORM}")
-
-# Runtime output directory.
-# -----------------------------------------------------------------------
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin.${PLATFORM}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/bin.${PLATFORM}.dbg")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin.${PLATFORM}.rel")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_CURRENT_SOURCE_DIR}/bin.${PLATFORM}.inforelease")
-
-if(VER_SUFFIX)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}.${VER_SUFFIX}")
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}.${VER_SUFFIX}")
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}.${VER_SUFFIX}")
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO}.${VER_SUFFIX}")
-endif()
-
-add_subdirectory(lab_00)
-add_subdirectory(lab_01)
-add_subdirectory(lab_02)
-add_subdirectory(lab_03)
+target_link_libraries(cw_01 ${OpenCV_LIBS})
