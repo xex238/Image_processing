@@ -4,8 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 
-#include <conio.h> // Нужен для _kbhit() и _getch()
-#include <Windows.h> // Нужен для Sleep()
+#include <conio.h> // ГЌГіГ¦ГҐГ­ Г¤Г«Гї _kbhit() ГЁ _getch()
+#include <Windows.h> // ГЌГіГ¦ГҐГ­ Г¤Г«Гї Sleep()
 
 #include <iostream>
 #include <ostream>
@@ -22,7 +22,7 @@ int main()
 	int value_2 = 127;
 	int value_3 = 255;
 
-	// Делаем фон
+	// Г„ГҐГ«Г ГҐГ¬ ГґГ®Г­
 	for (int i = 0; i < 100; i++)
 	{
 		for (int j = 0; j < 100; j++)
@@ -67,9 +67,9 @@ int main()
 		}
 	}
 
-	int r = 25; // Радиус кружочка
+	int r = 25; // ГђГ Г¤ГЁГіГ± ГЄГ°ГіГ¦Г®Г·ГЄГ 
 
-	// Рисуем кружочки
+	// ГђГЁГ±ГіГҐГ¬ ГЄГ°ГіГ¦Г®Г·ГЄГЁ
 	// [1; 1]
 	for (int i = 0; i < 100; i++)
 	{
@@ -145,7 +145,7 @@ int main()
 	{
 		for (int j = 1; j < 299; j++)
 		{
-			// [-1024; 1024] -> нормирование
+			// [-1024; 1024] -> Г­Г®Г°Г¬ГЁГ°Г®ГўГ Г­ГЁГҐ
 			image_1.at<uint8_t>(i, j) = (uint8_t)(((double)(image.at<uint8_t>(i - 1, j - 1) + 2 * (double)image.at<uint8_t>(i, j - 1) + (double)image.at<uint8_t>(i + 1, j - 1) - (double)image.at<uint8_t>(i - 1, j + 1) - 2 * (double)image.at<uint8_t>(i, j + 1) - (double)image.at<uint8_t>(i + 1, j + 1))) / 8 + 127);
 		}
 	}
@@ -154,7 +154,7 @@ int main()
 	{
 		for (int j = 1; j < 299; j++)
 		{
-			// [-1024; 1024] -> нормирование
+			// [-1024; 1024] -> Г­Г®Г°Г¬ГЁГ°Г®ГўГ Г­ГЁГҐ
 			image_2.at<uint8_t>(i, j) = (uint8_t)(((double)(image.at<uint8_t>(i - 1, j - 1) + 2 * (double)image.at<uint8_t>(i - 1, j) + (double)image.at<uint8_t>(i - 1, j + 1) - (double)image.at<uint8_t>(i + 1, j - 1) - 2 * (double)image.at<uint8_t>(i + 1, j) - (double)image.at<uint8_t>(i + 1, j + 1))) / 8 + 127);
 		}
 	}
@@ -163,7 +163,7 @@ int main()
 	{
 		for (int j = 0; j < 300; j++)
 		{
-			// [0; sqrt(2) * 255] -> нормирование
+			// [0; sqrt(2) * 255] -> Г­Г®Г°Г¬ГЁГ°Г®ГўГ Г­ГЁГҐ
 			image_3.at<uint8_t>(i, j) = (uint8_t)(sqrt((double)image_1.at<uint8_t>(i, j) * (double)image_1.at<uint8_t>(i, j) + (double)image_2.at<uint8_t>(i, j) * (double)image_2.at<uint8_t>(i, j)) / sqrt(2));
 		}
 	}
