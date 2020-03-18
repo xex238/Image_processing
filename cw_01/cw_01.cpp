@@ -197,10 +197,24 @@ void Filter_2_method(Mat& image, Mat& image_1, Mat& image_2, Mat& image_3)
 	1.0f, 0.0f, -1.0f };
 	Mat kernel_2(3, 3, CV_32FC1, (float*)kernelData_2);
 
-	cout << "I'm here" << endl;
 	//filter2D(image, image_1, -1, kernel_1);
 	filter2D(image, image_1, -1, kernel_1);
 	filter2D(image, image_2, -1, kernel_2);
+
+	//cout << image_1 << endl;
+	cout << image_1.at<float>(25, 250) << endl;
+
+	for (int i = 0; i < 200; i++)
+	{
+		for (int j = 0; j < 300; j++)
+		{
+			// [0; sqrt(2) * 255] -> нормирование
+			image_1.at<float>(i, j) = image_1.at<float>(i, j) / 8.0f + 127.0f;
+			image_2.at<float>(i, j) = image_2.at<float>(i, j) / 8.0f + 127.0f;
+		}
+	}
+
+	//cout << image_1 << endl;
 
 	for (int i = 0; i < 200; i++)
 	{
@@ -211,7 +225,7 @@ void Filter_2_method(Mat& image, Mat& image_1, Mat& image_2, Mat& image_3)
 		}
 	}
 
-	cout << "I'm not here" << endl;
+	//cout << image_3 << endl;
 }
 
 void Filter2d_Method_from_internet()
@@ -330,14 +344,14 @@ int main()
 	imshow("Image_3_float", image_3_float);
 	waitKey(0);
 
-	//image_1_float.convertTo(image_1, CV_8UC1);
-	//image_2_float.convertTo(image_2, CV_8UC1);
-	//image_3_float.convertTo(image_3, CV_8UC1);
+	image_1_float.convertTo(image_1, CV_8UC1);
+	image_2_float.convertTo(image_2, CV_8UC1);
+	image_3_float.convertTo(image_3, CV_8UC1);
 
-	//imshow("My image after filter 1", image_1);
-	//imshow("My image after filter 2", image_2);
-	//imshow("My image after filter 3", image_3);
-	//waitKey(0);
+	imshow("My image after filter 1", image_1);
+	imshow("My image after filter 2", image_2);
+	imshow("My image after filter 3", image_3);
+	waitKey(0);
 
 	return 0;
 }
