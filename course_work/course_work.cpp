@@ -4,18 +4,59 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 
+#include <windows.h>
 #include <iostream>
 #include <ostream>
 #include <vector>
-
 #include <ctime>
+#include <list>
 
 using namespace cv;
 using namespace std;
 
+vector<string> Get_paths(LPSTR cPath)
+{
+	WIN32_FIND_DATA fd;
+	HANDLE hFile;
+	short len = lstrlen(cPath);
+	lstrcat(cPath, "*");
+	hFile = FindFirstFile(cPath, &fd);
+	cPath[len] = 0;
+
+	vector<string> paths;
+
+	do {
+		if (fd.cFileName[0] == '.')continue;
+		if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			lstrcat(cPath, fd.cFileName);
+			lstrcat(cPath, "\\");
+			Get_paths(cPath);
+			cPath[len] = 0;
+		}
+		else
+		{
+			char* tmp = strrchr(fd.cFileName, '.');
+			if (tmp && !strcmp(tmp, ".tif"))
+			{
+				paths.push_back(fd.cFileName);
+			}
+		}
+	} while (FindNextFile(hFile, &fd));
+	FindClose(hFile);
+
+	cout << "Searched files" << endl;
+	for (int i = 0; i < paths.size(); i++)
+	{
+		cout << paths[i] << endl;
+	}
+
+	return paths;
+}
+
 double Get_average(const Mat& mat)
 {
-	// Èùåì ñðåäíåå ïî âñåì êàíàëàì
+	// Ð˜Ñ‰ÐµÐ¼ ÑÑ€ÐµÐ´Ð½ÐµÐµ Ð¿Ð¾ Ð²ÑÐµÐ¼ ÐºÐ°Ð½Ð°Ð»Ð°Ð¼
 	double average = 0.0;
 
 	for (int i = 0; i < mat.cols; i++)
@@ -38,7 +79,7 @@ double Get_average(const Mat& mat)
 }
 double Get_standart_deviation(const Mat& mat, const double& average)
 {
-	// Èùåì ñòàíäàðòíîå îòêëîíåíèå
+	// Ð˜Ñ‰ÐµÐ¼ ÑÑ‚Ð°Ð½Ð´Ð°Ñ€Ñ‚Ð½Ð¾Ðµ Ð¾Ñ‚ÐºÐ»Ð¾Ð½ÐµÐ½Ð¸Ðµ
 	double sigma = 0.0;
 
 	for (int i = 0; i < mat.cols; i++)
@@ -91,6 +132,8 @@ double Get_covariance(const Mat& mat_1, const Mat& mat_2, const double& average_
 
 double SSIM(const Mat& mat_1, const Mat& mat_2)
 {
+	double start_time = clock();
+
 	double average_1 = Get_average(mat_1);
 	double average_2 = Get_average(mat_2);
 
@@ -114,8 +157,11 @@ double SSIM(const Mat& mat_1, const Mat& mat_2)
 
 	double result_SSIM = ((2 * average_1 * average_2 + C_1) * (2 * covariance + C_2)) / ((average_1 * average_1 + average_2 * average_2 + C_1) * (sigma_1 * sigma_1 + sigma_2 * sigma_2 + C_2));
 
-	//cout << "SSIM = " << result_SSIM << endl;
-	//cout << endl;
+	double end_time = clock();
+
+	cout << "time of work = " << (end_time - start_time) / CLOCKS_PER_SEC << endl;
+	cout << "SSIM = " << result_SSIM << endl;
+	cout << endl;
 
 	return result_SSIM;
 }
@@ -164,9 +210,41 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 	cout << endl;
 }
 
-int main()
+int main(int argc, char** argv)
 {
-	Mat mat = imread("Cutie_cat.jpg");
+	//char cPath[MAX_PATH] = "c:\\Users\\Ð”Ð¼Ð¸Ñ‚Ñ€Ð¸Ð¹\\Downloads\\01_alb_id\\01_alb_id\\images\\TS\\";
+	char cPath[MAX_PATH] = "MIDV-500\\01_alb_id\\images\\TS\\";
+	//char cPath[MAX_PATH] = "01_alb_id\\01_alb_id\\images\\TS\\";
+	vector<string> paths = Get_paths(cPath);
+
+	Mat* collection_image = new Mat[paths.size()];
+
+	for (int i = 0; i < paths.size(); i++)
+	{
+		paths[i] = "01_alb_id\\01_alb_id\\images\\TS\\" + paths[i];
+		collection_image[i] = imread(paths[i]);
+	}
+
+	//cout << paths[0] << endl;
+	//cout << endl;
+
+	for (int i = 0; i < paths.size(); i++)
+	{
+		SSIM(collection_image[0], collection_image[i]);
+	}
+
+	//Mat mat_1 = imread("Cutie_cat.jpg");
+
+	//Mat mat = imread(paths[0]); // Ð Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚
+
+	//cout << "mat_1.cols = " << mat_1.cols << endl;
+	//cout << "mat_1.rows = " << mat_1.rows << endl;
+	//cout << endl;
+	//Mat mat = imread("01_alb_id\\01_alb_id\\images\\TS\\Cutie_cat.jpg"); // Ð Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚
+	//Mat mat = imread("01_alb_id\\01_alb_id\\images\\TS\\TS01_01.tif"); // Ð Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚
+	//cout << "mat.cols = " << mat.cols << endl;
+	//cout << "mat.rows = " << mat.rows << endl;
+	//cout << endl;
 
 	//imshow("My image", mat);
 	//waitKey(0);
@@ -181,5 +259,5 @@ int main()
 	//}
 
 	//SSIM(mat, mat);
-	Window_SSIM(mat, mat);
+	//Window_SSIM(mat, mat);
 }
