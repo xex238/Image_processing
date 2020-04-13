@@ -7,9 +7,9 @@
 #include <windows.h>
 #include <iostream>
 #include <ostream>
+#include <fstream>
 #include <vector>
 #include <ctime>
-#include <list>
 
 using namespace cv;
 using namespace std;
@@ -37,7 +37,7 @@ vector<string> Get_paths(LPSTR cPath)
 		else
 		{
 			char* tmp = strrchr(fd.cFileName, '.');
-			if (tmp && !strcmp(tmp, ".tif"))
+			if (tmp && !strcmp(tmp, ".bmp"))
 			{
 				paths.push_back(fd.cFileName);
 			}
@@ -50,6 +50,7 @@ vector<string> Get_paths(LPSTR cPath)
 	{
 		cout << paths[i] << endl;
 	}
+	cout << endl;
 
 	return paths;
 }
@@ -212,52 +213,41 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 
 int main(int argc, char** argv)
 {
-	//char cPath[MAX_PATH] = "c:\\Users\\Дмитрий\\Downloads\\01_alb_id\\01_alb_id\\images\\TS\\";
-	char cPath[MAX_PATH] = "MIDV-500\\01_alb_id\\images\\TS\\";
-	//char cPath[MAX_PATH] = "01_alb_id\\01_alb_id\\images\\TS\\";
-	vector<string> paths = Get_paths(cPath);
+	char cPath[MAX_PATH] = "tid2013\\distorted_images\\i01\\"; // Путь к папке с искажёнными изображениями
 
-	Mat* collection_image = new Mat[paths.size()];
+	vector<string> paths = Get_paths(cPath); // Хранятся пути к искажённым изображениям
 
-	for (int i = 0; i < paths.size(); i++)
-	{
-		paths[i] = "01_alb_id\\01_alb_id\\images\\TS\\" + paths[i];
-		collection_image[i] = imread(paths[i]);
-	}
-
-	//cout << paths[0] << endl;
-	//cout << endl;
+	Mat distorted_image; // Искажённое изображение
+	Mat reference_image = imread("tid2013\\reference_images\\I01.bmp"); // Эталонное изображение
 
 	for (int i = 0; i < paths.size(); i++)
 	{
-		SSIM(collection_image[0], collection_image[i]);
+		paths[i] = cPath + paths[i];
 	}
 
-	//Mat mat_1 = imread("Cutie_cat.jpg");
+	double* SSIM_results = new double[paths.size()]; // Результаты сравнения изображений
 
-	//Mat mat = imread(paths[0]); // Работает
+	double start_time = clock(); // Засекаем время
 
-	//cout << "mat_1.cols = " << mat_1.cols << endl;
-	//cout << "mat_1.rows = " << mat_1.rows << endl;
-	//cout << endl;
-	//Mat mat = imread("01_alb_id\\01_alb_id\\images\\TS\\Cutie_cat.jpg"); // Работает
-	//Mat mat = imread("01_alb_id\\01_alb_id\\images\\TS\\TS01_01.tif"); // Работает
-	//cout << "mat.cols = " << mat.cols << endl;
-	//cout << "mat.rows = " << mat.rows << endl;
-	//cout << endl;
+	for (int i = 0; i < paths.size(); i++)
+	{
+		distorted_image = imread(paths[i]);
+		SSIM_results[i] = SSIM(reference_image, distorted_image);
+	}
 
-	//imshow("My image", mat);
-	//waitKey(0);
+	double end_time = clock(); // Получаем итоговое время
 
-	//for (int i = 0; i < mat.cols; i++)
-	//{
-	//	for (int j = 0; j < mat.rows; j++)
-	//	{
-	//		cout << (double)mat.at<uint8_t>(j, i) << " ";
-	//	}
-	//	cout << endl;
-	//}
+	cout << "total running time of the algorithm = " << (end_time - start_time) / CLOCKS_PER_SEC << endl;
 
-	//SSIM(mat, mat);
-	//Window_SSIM(mat, mat);
+	// Записываем результаты в файл
+	ofstream file;
+	file.open("SSIM_results.txt");
+	if (file.is_open())
+	{
+		for (int i = 0; i < paths.size(); i++)
+		{
+			file << SSIM_results[i] << endl;
+		}
+	}
+	file.close();
 }
