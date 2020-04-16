@@ -14,59 +14,65 @@
 using namespace cv;
 using namespace std;
 
-Mat Step_average_binarization(Mat& bw_mat)
+Mat Step_average_binarization(const Mat& bw_mat)
 {
-	for (int i = 0; i < bw_mat.cols; i++)
+	Mat result_bw_mat = bw_mat.clone();
+
+	for (int i = 0; i < result_bw_mat.cols; i++)
 	{
-		for (int j = 0; j < bw_mat.rows; j++)
+		for (int j = 0; j < result_bw_mat.rows; j++)
 		{
-			if (bw_mat.at<uint8_t>(j, i) < 128)
+			if (result_bw_mat.at<uint8_t>(j, i) < 128)
 			{
-				bw_mat.at<uint8_t>(j, i) = 0;
+				result_bw_mat.at<uint8_t>(j, i) = 0;
 			}
 			else
 			{
-				bw_mat.at<uint8_t>(j, i) = 255;
+				result_bw_mat.at<uint8_t>(j, i) = 255;
 			}
 		}
 	}
 
-	return bw_mat;
+	return result_bw_mat;
 }
-Mat Step_median_binarization(Mat& bw_mat)
+Mat Step_median_binarization(const Mat& bw_mat)
 {
+	Mat result_bw_mat = bw_mat.clone();
+
 	int median = 0;
 
-	for (int i = 0; i < bw_mat.rows; i++)
+	for (int i = 0; i < result_bw_mat.rows; i++)
 	{
-		for (int j = 0; j < bw_mat.cols; j++)
+		for (int j = 0; j < result_bw_mat.cols; j++)
 		{
-			median = median + bw_mat.at<uint8_t>(i, j);
+			median = median + result_bw_mat.at<uint8_t>(i, j);
 		}
 	}
 
-	median = round(median / (bw_mat.rows * bw_mat.cols));
+	median = round(median / (result_bw_mat.rows * result_bw_mat.cols));
 	cout << "median = " << median << endl;
 
-	for (int i = 0; i < bw_mat.cols; i++)
+	for (int i = 0; i < result_bw_mat.cols; i++)
 	{
-		for (int j = 0; j < bw_mat.rows; j++)
+		for (int j = 0; j < result_bw_mat.rows; j++)
 		{
-			if (bw_mat.at<uint8_t>(j, i) < median)
+			if (result_bw_mat.at<uint8_t>(j, i) < median)
 			{
-				bw_mat.at<uint8_t>(j, i) = 0;
+				result_bw_mat.at<uint8_t>(j, i) = 0;
 			}
 			else
 			{
-				bw_mat.at<uint8_t>(j, i) = 255;
+				result_bw_mat.at<uint8_t>(j, i) = 255;
 			}
 		}
 	}
 
-	return bw_mat;
+	return result_bw_mat;
 }
-Mat Step_Otsu_binarization(Mat& bw_mat)
+Mat Step_Otsu_binarization(const Mat& bw_mat)
 {
+	Mat result_bw_mat = bw_mat.clone();
+
 	double* channel = new double[256];
 
 	for (int i = 0; i < 256; i++)
@@ -74,29 +80,21 @@ Mat Step_Otsu_binarization(Mat& bw_mat)
 		channel[i] = 0;
 	}
 
-	for (int i = 0; i < bw_mat.cols; i++)
+	for (int i = 0; i < result_bw_mat.cols; i++)
 	{
-		for (int j = 0; j < bw_mat.rows; j++)
+		for (int j = 0; j < result_bw_mat.rows; j++)
 		{
-			channel[bw_mat.at<uint8_t>(j, i)]++;
+			channel[result_bw_mat.at<uint8_t>(j, i)]++;
 		}
 	}
 
-	//cout << "channel[i] = " << endl;
-	//for (int i = 0; i < 256; i++)
-	//{
-	//	cout << channel[i] << endl;
-	//}
-
-	int N = bw_mat.cols * bw_mat.rows;
+	int N = result_bw_mat.cols * result_bw_mat.rows;
 
 	double* p = new double[256];
 
-	//cout << "p[i] = " << endl;
 	for (int i = 0; i < 256; i++)
 	{
 		p[i] = (double)channel[i] / (double)N;
-		//cout << p[i] << endl;
 	}
 
 	// Вычисляем дисперсию всего изображения
@@ -110,10 +108,6 @@ Mat Step_Otsu_binarization(Mat& bw_mat)
 	}
 
 	double sigma_general = M_x2 - (M_x * M_x);
-
-	//cout << "M_x = " << M_x << endl;
-	//cout << "M_x2 = " << M_x2 << endl;
-	//cout << "sigma_general = " << sigma_general << endl << endl;
 
 	// Ищем максимальное значение nu
 	int L = 256;
@@ -169,36 +163,34 @@ Mat Step_Otsu_binarization(Mat& bw_mat)
 	cout << "nu = " << nu << endl;
 	cout << "max_k = " << max_k << endl << endl;
 
-	for (int i = 0; i < bw_mat.cols; i++)
+	for (int i = 0; i < result_bw_mat.cols; i++)
 	{
-		for (int j = 0; j < bw_mat.rows; j++)
+		for (int j = 0; j < result_bw_mat.rows; j++)
 		{
-			if (bw_mat.at<uint8_t>(j, i) < max_k)
+			if (result_bw_mat.at<uint8_t>(j, i) < max_k)
 			{
-				bw_mat.at<uint8_t>(j, i) = 0;
+				result_bw_mat.at<uint8_t>(j, i) = 0;
 			}
 			else
 			{
-				bw_mat.at<uint8_t>(j, i) = 255;
+				result_bw_mat.at<uint8_t>(j, i) = 255;
 			}
 		}
 	}
 
-	return bw_mat;
+	return result_bw_mat;
 }
-Mat Global_binarization(Mat& bw_mat)
+Mat Global_binarization(const Mat& bw_mat)
 {
-	//Mat result = Step_average_binarization(bw_mat);
-	Mat bw_mat_1 = bw_mat.clone();
-	bw_mat_1 = Step_median_binarization(bw_mat_1);
+	//Mat result = Step_average_binarization(result_bw_mat);
+	Mat bw_mat_1 = Step_median_binarization(bw_mat);
 
 	// Реализовать метод Отцу глобальной бинаризации
-	Mat bw_mat_2 = bw_mat.clone();
-	bw_mat_2 = Step_Otsu_binarization(bw_mat_2);
+	Mat bw_mat_2 = Step_Otsu_binarization(bw_mat);
 	return bw_mat_2;
 }
 
-Mat Image_extention_constant(Mat& mat, int x, int y, int constant)
+Mat Image_extention_constant(const Mat& mat, const int x, const int y, const int constant)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(constant));
 
@@ -220,7 +212,7 @@ Mat Image_extention_constant(Mat& mat, int x, int y, int constant)
 
 	return result;
 }
-Mat Image_extension_average(Mat& mat, int x, int y)
+Mat Image_extension_average(const Mat& mat, const int x, const int y)
 {
 	int average = 0;
 	for (int i = 0; i < mat.cols; i++)
@@ -253,7 +245,7 @@ Mat Image_extension_average(Mat& mat, int x, int y)
 
 	return result;
 }
-Mat Image_extension_continue_image(Mat& mat, int x, int y)
+Mat Image_extension_continue_image(const Mat& mat, const int x, const int y)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(0));
 
@@ -345,7 +337,7 @@ Mat Image_extension_continue_image(Mat& mat, int x, int y)
 
 	return result;
 }
-Mat Image_extension_reflect_image(Mat& mat, int x, int y)
+Mat Image_extension_reflect_image(const Mat& mat, const int x, const int y)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(0));
 
@@ -411,7 +403,7 @@ Mat Image_extension_reflect_image(Mat& mat, int x, int y)
 
 	return result;
 }
-Mat Image_extension_back_reflect_image(Mat& mat, int x, int y)
+Mat Image_extension_back_reflect_image(const Mat& mat, const int x, const int y)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(0));
 
@@ -481,7 +473,7 @@ Mat Image_extension_back_reflect_image(Mat& mat, int x, int y)
 // square_x - длина прямоугольного окна
 // square_y - ширина прямоугольного окна
 // k - заранее подобранный коэффициент, определяющий значимость стандартного отклонения
-void Nibleck_binarization(Mat& mat, int square_x, int square_y, double k)
+Mat Nibleck_binarization(const Mat& mat, const int square_x, const int square_y, const double k)
 {
 	if ((square_x % 2 == 0) || (square_y % 2 == 0))
 	{
@@ -498,7 +490,6 @@ void Nibleck_binarization(Mat& mat, int square_x, int square_y, double k)
 	// Создаём матрицу со значениями порога для каждого пикселя
 	double** step_values = new double* [mat.cols];
 	//vector<vector<double>> step_values(mat.cols, vector<double>(mat.rows));
-
 
 	for (int i = 0; i < mat.cols; i++)
 	{
@@ -537,13 +528,14 @@ void Nibleck_binarization(Mat& mat, int square_x, int square_y, double k)
 
 			S = sqrt(S / ((double)square_x * (double)square_y));
 			//cout << "S = " << S << endl;
+			//cout << "value = " << m + k * S << endl;
 
 			step_values[i_original][j_original] = m + k * S;
+			//cout << "value = " << step_values[i_original][j_original] << endl;
 			if ((step_values[i_original][j_original] < 0) || (step_values[i_original][j_original] > 255))
 			{
 				count_of_anomalous_values++;
 			}
-
 			j_original++;
 		}
 		i_original++;
@@ -552,38 +544,40 @@ void Nibleck_binarization(Mat& mat, int square_x, int square_y, double k)
 	cout << "All completed" << endl;
 	cout << "Count of anomalous values - " << count_of_anomalous_values << endl;
 
-	//for (int i = 0; mat.cols; i++)
-	//{
-	//	for (int j = 0; mat.rows; j++)
-	//	{
-	//		cout << step_values[i][j] << " ";
-	//	}
-	//	cout << endl;
-	//}
+	Mat binary_mat = mat.clone();
 
-	//// Процесс бинаризации
-	//for (int i = 0; i < mat.cols; i++)
-	//{
-	//	for (int j = 0; j < mat.rows; j++)
-	//	{
-	//		if (mat.at<uint8_t>(j, i) < step_values[i][j])
-	//		{
-	//			mat.at<uint8_t>(j, i) = 0;
-	//		}
-	//		else
-	//		{
-	//			mat.at<uint8_t>(j, i) = 255;
-	//		}
-	//	}
-	//}
+	// Процесс бинаризации
+	for (int i = 0; i < mat.cols; i++)
+	{
+		for (int j = 0; j < mat.rows; j++)
+		{
+			//cout << (double)mat.at<uint8_t>(j, i) << " " << step_values[i][j] << endl; // Работает
+			if ((double)mat.at<uint8_t>(j, i) < step_values[i][j])
+			{
+				binary_mat.at<uint8_t>(j, i) = (uint8_t)0;
+				//cout << "Yes";
+			}
+			else
+			{
+				binary_mat.at<uint8_t>(j, i) = (uint8_t)255;
+				//cout << "No";
+			}
+		}
+	}
+
+	cout << "All completed" << endl;
+	cout << "Count of anomalous values - " << count_of_anomalous_values << endl;
 
 	//imshow("Binary cutie cat", mat);
 	//waitKey(0);
+
+	return binary_mat;
 }
-void Local_binarization(Mat& bw_mat)
+Mat Local_binarization(const Mat& bw_mat)
 {
 	// Реализовать метод Ниблека локальной бинаризации
-	Nibleck_binarization(bw_mat, 5, 5, 0.2);
+	Mat binary_mat = Nibleck_binarization(bw_mat, 5, 5, 0.2);
+	return binary_mat;
 }
 
 int main()
@@ -592,25 +586,60 @@ int main()
 
 	Mat bw_mat;
 	cvtColor(mat, bw_mat, COLOR_BGR2GRAY);
-	Mat binary_mat = bw_mat.clone();
 
-	imshow("Black-white cat", binary_mat);
+	//imshow("Black-white image", bw_mat);
+
+	// Работа с CLAHE (https://answers.opencv.org/question/12024/use-of-clahe/)
+	Mat CLAHE_mat = bw_mat.clone();
+
+	Ptr<CLAHE> clahe = createCLAHE();
+	clahe->setClipLimit(4); // Задание первого параметра ("лимит обрезаний")
+	clahe->setTilesGridSize(Size(4, 4)); // Второй параметр (размер окна)
+
+	Mat dst;
+	clahe->apply(CLAHE_mat, dst);
+
+	imshow("CLAHE image", dst);
 	waitKey(0);
 
-	cout << "Mini-result " << round(5 / 2) << endl;
+	// Конец работы с CLAHE
 
-	Local_binarization(binary_mat);
+	//imshow("Black-white cat", binary_mat);
+	//waitKey(0);
+
+	//Mat binary_mat = Local_binarization(bw_mat);
+	Mat binary_mat = Global_binarization(bw_mat);
+
+	// Морфологическое преобразование
+	// Фильтрация по цвету
+
+	// Медианный фильтр (https://techcave.ru/posts/65-filtry-v-opencv-medianblur-i-bilateral.html)
+	Mat result_image;
+	for (int i = 1; i < 21; i = i + 2)
+	{
+		medianBlur(binary_mat, result_image, i);
+		imshow("Median filter", result_image);
+		waitKey(0);
+	}
+
+	// Двухстороннее сглаживание
+	for (int i = 1; i < 21; i = i + 2)
+	{
+		bilateralFilter(binary_mat, result_image, i, i * 2, i * 2);
+		imshow("Bilateral filter", result_image);
+		waitKey(0);
+	}
+
+	//inRange(binary_mat, 100, 200);
+
+	//Mat st_1 = getStructuringElement(MORPH_RECT, Size(21, 21), Size(10, 10));
+	//Mat st_2 = getStructuringElement(MORPH_RECT, Size(11, 11), Size(5, 5));
+	//morphologyEx()
+
+
+	// Конец морфологического преобразования
 
 	//Mat result = Global_binarization(binary_mat);
-
-	//imshow("Cutie cat", mat);
-	//waitKey(0);
-
-	//imshow("Black-white cutie cat", bw_mat);
-	//waitKey(0);
-
-	//imshow("Binarization cutie cat", result);
-	//waitKey(0);
 
 	return 0;
 }
