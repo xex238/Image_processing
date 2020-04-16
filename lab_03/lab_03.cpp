@@ -611,8 +611,6 @@ int main()
 	Mat binary_mat = Global_binarization(bw_mat);
 
 	// Морфологическое преобразование
-	// Фильтрация по цвету
-
 	// Медианный фильтр (https://techcave.ru/posts/65-filtry-v-opencv-medianblur-i-bilateral.html)
 	Mat result_image;
 	for (int i = 1; i < 21; i = i + 2)
@@ -630,16 +628,26 @@ int main()
 		waitKey(0);
 	}
 
-	//inRange(binary_mat, 100, 200);
-
-	//Mat st_1 = getStructuringElement(MORPH_RECT, Size(21, 21), Size(10, 10));
-	//Mat st_2 = getStructuringElement(MORPH_RECT, Size(11, 11), Size(5, 5));
-	//morphologyEx()
-
-
 	// Конец морфологического преобразования
 
-	//Mat result = Global_binarization(binary_mat);
+	// Альфа-блендинг
+	Mat background = imread("brick_texture.jpg");
+	background.convertTo(background, CV_32FC3);
+	mat.convertTo(mat, CV_32FC3);
+	
+	binary_mat.convertTo(binary_mat, CV_32FC3, 1.0 / 255);
+	Mat output_image = Mat::zeros(mat.size(), mat.type());
+
+	multiply(binary_mat, mat, mat);
+
+	multiply(Scalar::all(1.0) - binary_mat, background, background);
+
+	//add(bw_mat, background, output_image);
+
+	//imshow("alpha blended image", output_image / 255);
+	//waitKey(0);
+
+	// Конец альфа-блендинга
 
 	return 0;
 }
