@@ -190,7 +190,7 @@ Mat Global_binarization(const Mat& bw_mat)
 	return bw_mat_2;
 }
 
-Mat Image_extention_constant(const Mat& mat, const int x, const int y, const int constant)
+Mat Image_extention_constant(const Mat& mat, const int& x, const int& y, const int& constant)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(constant));
 
@@ -212,7 +212,7 @@ Mat Image_extention_constant(const Mat& mat, const int x, const int y, const int
 
 	return result;
 }
-Mat Image_extension_average(const Mat& mat, const int x, const int y)
+Mat Image_extension_average(const Mat& mat, const int& x, const int& y)
 {
 	int average = 0;
 	for (int i = 0; i < mat.cols; i++)
@@ -245,7 +245,7 @@ Mat Image_extension_average(const Mat& mat, const int x, const int y)
 
 	return result;
 }
-Mat Image_extension_continue_image(const Mat& mat, const int x, const int y)
+Mat Image_extension_continue_image(const Mat& mat, const int& x, const int& y)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(0));
 
@@ -337,7 +337,7 @@ Mat Image_extension_continue_image(const Mat& mat, const int x, const int y)
 
 	return result;
 }
-Mat Image_extension_reflect_image(const Mat& mat, const int x, const int y)
+Mat Image_extension_reflect_image(const Mat& mat, const int& x, const int& y)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(0));
 
@@ -403,7 +403,7 @@ Mat Image_extension_reflect_image(const Mat& mat, const int x, const int y)
 
 	return result;
 }
-Mat Image_extension_back_reflect_image(const Mat& mat, const int x, const int y)
+Mat Image_extension_back_reflect_image(const Mat& mat, const int& x, const int& y)
 {
 	Mat result(mat.rows + y - 1, mat.cols + x - 1, mat.type(), Scalar(0));
 
@@ -481,15 +481,15 @@ Mat Nibleck_binarization(const Mat& mat, const int square_x, const int square_y,
 		exit(-1);
 	}
 	// Сначала необходимо "расширить" картинку одним из известных методов
-	//Image_extention_constant(mat, square_x, square_y, 128);
-	//Image_extension_average(mat, square_x, square_y);
-	//Mat extension_image = Image_extension_continue_image(mat, square_x, square_y);
-	//Mat extension_image = Image_extension_reflect_image(mat, square_x, square_y);
+	//Image_extention_constant(bw_mat_copy, square_x, square_y, 128);
+	//Image_extension_average(bw_mat_copy, square_x, square_y);
+	//Mat extension_image = Image_extension_continue_image(bw_mat_copy, square_x, square_y);
+	//Mat extension_image = Image_extension_reflect_image(bw_mat_copy, square_x, square_y);
 	Mat extension_image = Image_extension_back_reflect_image(mat, square_x, square_y);
 
 	// Создаём матрицу со значениями порога для каждого пикселя
 	double** step_values = new double* [mat.cols];
-	//vector<vector<double>> step_values(mat.cols, vector<double>(mat.rows));
+	//vector<vector<double>> step_values(bw_mat_copy.cols, vector<double>(bw_mat_copy.rows));
 
 	for (int i = 0; i < mat.cols; i++)
 	{
@@ -551,7 +551,7 @@ Mat Nibleck_binarization(const Mat& mat, const int square_x, const int square_y,
 	{
 		for (int j = 0; j < mat.rows; j++)
 		{
-			//cout << (double)mat.at<uint8_t>(j, i) << " " << step_values[i][j] << endl; // Работает
+			//cout << (double)bw_mat_copy.at<uint8_t>(j, i) << " " << step_values[i][j] << endl; // Работает
 			if ((double)mat.at<uint8_t>(j, i) < step_values[i][j])
 			{
 				binary_mat.at<uint8_t>(j, i) = (uint8_t)0;
@@ -568,7 +568,7 @@ Mat Nibleck_binarization(const Mat& mat, const int square_x, const int square_y,
 	cout << "All completed" << endl;
 	cout << "Count of anomalous values - " << count_of_anomalous_values << endl;
 
-	//imshow("Binary cutie cat", mat);
+	//imshow("Binary cutie cat", bw_mat_copy);
 	//waitKey(0);
 
 	return binary_mat;
@@ -580,6 +580,85 @@ Mat Local_binarization(const Mat& bw_mat)
 	return binary_mat;
 }
 
+// Морфологические преобразования - эрозия и дилатация
+Mat Erosion(const Mat& mat, const int& erosion_element, const int& erosion_size)
+{
+	int erosion_type = 0;
+	if (erosion_element == 0)
+	{
+		erosion_type = MORPH_RECT;
+	}
+	else if (erosion_element == 1)
+	{
+		erosion_type = MORPH_CROSS;
+	}
+	else if (erosion_element == 2)
+	{
+		erosion_type = MORPH_ELLIPSE;
+	}
+
+	Mat element = getStructuringElement(erosion_type, Size(2 * erosion_size + 1, 2 * erosion_size + 1), Point(erosion_size, erosion_size));
+	Mat erosion_result;
+
+	erode(mat, erosion_result, element);
+	//imshow("Before erosion", bw_mat_copy);
+	//imshow("After erosion", erosion_result);
+	//waitKey(0);
+
+	return erosion_result;
+}
+Mat Dilatation(const Mat& mat, const int& dilatation_element, const int& dilatation_size)
+{
+	int dilatation_type = 0;
+	if (dilatation_element == 0)
+	{
+		dilatation_type = MORPH_RECT;
+	}
+	else if (dilatation_element == 1)
+	{
+		dilatation_type = MORPH_CROSS;
+	}
+	else if (dilatation_element == 2)
+	{
+		dilatation_type = MORPH_ELLIPSE;
+	}
+
+	Mat element = getStructuringElement(dilatation_type, Size(2 * dilatation_size + 1, 2 * dilatation_size + 1), Point(dilatation_size, dilatation_size));
+	Mat dilatation_result;
+
+	dilate(mat, dilatation_result, element);
+	//imshow("Before dilatation", bw_mat_copy);
+	//imshow("After dilatation", dilatation_result);
+	//waitKey(0);
+
+	return dilatation_result;
+}
+
+void Alpha_blending(const Mat& bw_mat, const Mat& binary_mat)
+{
+	Mat bw_mat_copy = bw_mat.clone();
+	Mat binary_mat_copy = binary_mat.clone();
+
+	double alpha = 0.5;
+	double beta;
+	double input;
+
+	cin >> input;
+
+	if ((input >= 0) && (input <= 1))
+	{
+		alpha = input;
+	}
+
+	beta = 1 - alpha;
+
+	Mat result_image;
+	addWeighted(bw_mat_copy, alpha, binary_mat_copy, beta, 0.0, result_image);
+
+	imshow("Alpha blending image", result_image);
+	waitKey(0);
+}
+
 int main()
 {
 	Mat mat = imread("Cutie_cat.jpg");
@@ -588,6 +667,12 @@ int main()
 	cvtColor(mat, bw_mat, COLOR_BGR2GRAY);
 
 	//imshow("Black-white image", bw_mat);
+
+	//Mat binary_mat_copy = Local_binarization(bw_mat);
+	Mat binary_mat = Global_binarization(bw_mat);
+
+	cout << mat.type() << endl;
+	cout << binary_mat.type() << endl;
 
 	// Работа с CLAHE (https://answers.opencv.org/question/12024/use-of-clahe/)
 	Mat CLAHE_mat = bw_mat.clone();
@@ -604,49 +689,37 @@ int main()
 
 	// Конец работы с CLAHE
 
-	//imshow("Black-white cat", binary_mat);
-	//waitKey(0);
-
-	//Mat binary_mat = Local_binarization(bw_mat);
-	Mat binary_mat = Global_binarization(bw_mat);
-
-	// Морфологическое преобразование
-	// Медианный фильтр (https://techcave.ru/posts/65-filtry-v-opencv-medianblur-i-bilateral.html)
+	// Морфологические преобразования
 	Mat result_image;
-	for (int i = 1; i < 21; i = i + 2)
-	{
-		medianBlur(binary_mat, result_image, i);
-		imshow("Median filter", result_image);
-		waitKey(0);
-	}
+
+	// Медианный фильтр (https://techcave.ru/posts/65-filtry-v-opencv-medianblur-i-bilateral.html)
+	medianBlur(binary_mat, result_image, 5);
+	imshow("Median filter", result_image);
+	waitKey(0);
 
 	// Двухстороннее сглаживание
-	for (int i = 1; i < 21; i = i + 2)
-	{
-		bilateralFilter(binary_mat, result_image, i, i * 2, i * 2);
-		imshow("Bilateral filter", result_image);
-		waitKey(0);
-	}
+	bilateralFilter(binary_mat, result_image, 3, 6, 6);
+	imshow("Bilateral filter", result_image);
+	waitKey(0);
 
+	// Эрозия и дилатация
+	Mat erosion_dilatation_result;
+	Mat dilatation_erosion_result;
+
+	erosion_dilatation_result = Erosion(binary_mat, 2, 1);
+	erosion_dilatation_result = Dilatation(binary_mat, 2, 1);
+
+	dilatation_erosion_result = Dilatation(binary_mat, 2, 1);
+	dilatation_erosion_result = Erosion(binary_mat, 2, 1);
+
+	imshow("Binary bw_mat", binary_mat);
+	imshow("Erosion and dilatation result", erosion_dilatation_result);
+	imshow("Dilatation and erosion result", dilatation_erosion_result);
+	waitKey(0);
 	// Конец морфологического преобразования
 
 	// Альфа-блендинг
-	Mat background = imread("brick_texture.jpg");
-	background.convertTo(background, CV_32FC3);
-	mat.convertTo(mat, CV_32FC3);
-	
-	binary_mat.convertTo(binary_mat, CV_32FC3, 1.0 / 255);
-	Mat output_image = Mat::zeros(mat.size(), mat.type());
-
-	multiply(binary_mat, mat, mat);
-
-	multiply(Scalar::all(1.0) - binary_mat, background, background);
-
-	//add(bw_mat, background, output_image);
-
-	//imshow("alpha blended image", output_image / 255);
-	//waitKey(0);
-
+	Alpha_blending(bw_mat, binary_mat);
 	// Конец альфа-блендинга
 
 	return 0;
