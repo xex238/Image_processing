@@ -11,10 +11,14 @@
 #include <vector>
 #include <ctime>
 
+#include "document.h";
+#include "filereadstream.h";
+
 using namespace cv;
 using namespace std;
+using namespace rapidjson;
 
-vector<string> Get_paths(LPSTR cPath)
+vector<string> Get_paths(const LPSTR& cPath, const string& extention)
 {
 	WIN32_FIND_DATA fd;
 	HANDLE hFile;
@@ -31,13 +35,13 @@ vector<string> Get_paths(LPSTR cPath)
 		{
 			lstrcat(cPath, fd.cFileName);
 			lstrcat(cPath, "\\");
-			Get_paths(cPath);
+			Get_paths(cPath, extention);
 			cPath[len] = 0;
 		}
 		else
 		{
 			char* tmp = strrchr(fd.cFileName, '.');
-			if (tmp && !strcmp(tmp, ".bmp"))
+			if (tmp && !strcmp(tmp, extention.c_str()))
 			{
 				paths.push_back(fd.cFileName);
 			}
@@ -211,11 +215,50 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 	cout << endl;
 }
 
-int main(int argc, char** argv)
+Mat Image_cropping(const Mat& mat)
+{
+	string path = "01_alb_id\\01_alb_id\\ground_truth\\TS\\TS01_01.json";
+	//ifstream my_stream(path);
+	
+	FILE* pFile = fopen(path.c_str(), "rb");
+	char buffer[65536];
+	FileReadStream is(pFile, buffer, sizeof(buffer));
+
+	Document document;
+	document.ParseStream<0, UTF8<>, FileReadStream>(is);
+
+	assert(document.IsObject());
+	//assert(document.HasMember("hello")); // Нет такого поля - ошибка
+	assert(document.HasMember("quad")); // Есть такое поле - ошибки нет
+	assert(document["quad"].IsArray()); // Верно
+	assert(document["quad"][0].IsArray()); // Верно
+	//assert(document["quad"][0][0].IsDouble()); // Неверно
+	assert(document["quad"][0][0].IsInt()); // Верно
+
+	int value = document["quad"][0][0].GetInt();
+	cout << "value = " << value << endl;
+
+	int start_x = document["quad"][0][0].GetInt();
+	int start_y = document["quad"][0][1].GetInt();
+	int width = document["quad"][2][0].GetInt() - document["quad"][0][0].GetInt();
+	int height = document["quad"][2][1].GetInt() - document["quad"][0][1].GetInt();
+
+	Mat ROI(mat, Rect(start_x, start_y, width, height));
+	Mat result_image;
+	ROI.copyTo(result_image);
+
+	imshow("Cropped image", result_image);
+	waitKey(0);
+
+	return result_image;
+}
+
+void TID2013()
 {
 	char cPath[MAX_PATH] = "tid2013\\distorted_images\\i01\\"; // Путь к папке с искажёнными изображениями
 
-	vector<string> paths = Get_paths(cPath); // Хранятся пути к искажённым изображениям
+	string image_extention = ".bmp";
+	vector<string> paths = Get_paths(cPath, image_extention); // Хранятся пути к искажённым изображениям
 
 	Mat distorted_image; // Искажённое изображение
 	Mat reference_image = imread("tid2013\\reference_images\\I01.bmp"); // Эталонное изображение
@@ -250,4 +293,55 @@ int main(int argc, char** argv)
 		}
 	}
 	file.close();
+}
+void MIDV500()
+{
+	char cPath[MAX_PATH] = "01_alb_id\\01_alb_id\\images\\TS\\"; // Путь к папке с искажёнными изображениями
+
+	string image_extention = ".tif";
+	vector<string> paths = Get_paths(cPath, image_extention); // Хранятся пути к искажённым изображениям
+
+	Mat distorted_image; // Искажённое изображение
+	Mat reference_image = imread("01_alb_id\\01_alb_id\\images\\01_alb_id.tif"); // Эталонное изображение
+
+	for (int i = 0; i < paths.size(); i++)
+	{
+		paths[i] = cPath + paths[i];
+	}
+
+	double* SSIM_results = new double[paths.size()]; // Результаты сравнения изображений
+
+	double start_time = clock(); // Засекаем время
+
+	// 1) Обрезаем изображение
+	// 2) Приводим к одному размеру
+	// 3) Находим значение SSIM
+	for (int i = 0; i < paths.size(); i++)
+	{
+		distorted_image = imread(paths[i]);
+		Mat cropped_image = Image_cropping(distorted_image); // Обрезаем изображение
+		SSIM_results[i] = SSIM(reference_image, cropped_image); // Находим значение SSIM
+	}
+
+	double end_time = clock(); // Получаем итоговое время
+
+	cout << "total running time of the algorithm = " << (end_time - start_time) / CLOCKS_PER_SEC << endl;
+
+	// Записываем результаты в файл
+	ofstream file;
+	file.open("SSIM_results.txt");
+	if (file.is_open())
+	{
+		for (int i = 0; i < paths.size(); i++)
+		{
+			file << SSIM_results[i] << endl;
+		}
+	}
+	file.close();
+}
+
+int main(int argc, char** argv)
+{
+	//TID2013();
+	MIDV500();
 }
