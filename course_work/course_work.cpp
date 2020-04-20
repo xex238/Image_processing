@@ -11,14 +11,14 @@
 #include <vector>
 #include <ctime>
 
-#include "document.h";
-#include "filereadstream.h";
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
 
 using namespace cv;
 using namespace std;
 using namespace rapidjson;
 
-// Решение СЛАУ методом Гаусса
+// Сортировка точек по возрастанию значения y
 int** Sort_points(int** points)
 {
 	int** result = new int* [4];
@@ -60,6 +60,7 @@ int** Sort_points(int** points)
 
 	return result;
 }
+// Решение СЛАУ методом Гаусса
 void Gauss_method(const int**& quad, const double**& square)
 {
 	int i, j;
@@ -152,21 +153,6 @@ void Gauss_method(const int**& quad, const double**& square)
 	delete[] matrix;
 	system("pause");
 }
-// Вывод системы уравнений
-void sysout(double** a, double* y, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n; j++)
-		{
-			cout << a[i][j] << "*x" << j;
-			if (j < n - 1)
-				cout << " + ";
-		}
-		cout << " = " << y[i] << endl;
-	}
-	return;
-}
 double* Gauss(double** a, double* y, int n)
 {
 	double* x, max;
@@ -228,6 +214,22 @@ double* Gauss(double** a, double* y, int n)
 	}
 	return x;
 }
+// Вывод в консоль системы уравнений
+void sysout(double** a, double* y, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			cout << a[i][j] << "*x" << j;
+			if (j < n - 1)
+				cout << " + ";
+		}
+		cout << " = " << y[i] << endl;
+	}
+	cout << endl;
+}
+// Поиск обратной матрицы
 double** Inversion(double** A, int N)
 {
 	double temp;
@@ -294,6 +296,7 @@ double** Inversion(double** A, int N)
 	return A;
 }
 
+// Получения набора путей к оцениваемым изображениям
 vector<string> Get_paths(const LPSTR& cPath, const string& extention)
 {
 	WIN32_FIND_DATA fd;
@@ -491,7 +494,7 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 	cout << endl;
 }
 
-Mat Image_cropping(const Mat& mat)
+Mat Transform_image_cropping(const Mat& mat)
 {
 	string path = "01_alb_id\\01_alb_id\\ground_truth\\TS\\TS01_01.json";
 	
@@ -695,6 +698,41 @@ Mat Image_cropping(const Mat& mat)
 
 	return square_mat;
 }
+Mat Image_cropping(const Mat& mat)
+{
+	string path = "MIDV-500\\01_alb_id\\ground_truth\\TS\\TS01_01.json";
+	//ifstream my_stream(path);
+
+	FILE* pFile = fopen(path.c_str(), "rb");
+	char buffer[16384];
+	FileReadStream is(pFile, buffer, sizeof(buffer));
+
+	Document document;
+	document.ParseStream<0, UTF8<>, FileReadStream>(is);
+
+	// Получаем координаты четырёхугольника
+	int** quad = new int* [4];
+	for (int i = 0; i < 4; i++)
+	{
+		quad[i] = new int[2];
+		quad[i][0] = document["quad"][i][0].GetInt();
+		quad[i][1] = document["quad"][i][1].GetInt();
+	}
+
+	int start_x = quad[0][0];
+	int start_y = quad[0][1];
+	int width = quad[2][0] - quad[0][0];
+	int height = quad[2][1] - quad[0][1];
+
+	Mat ROI(mat, Rect(start_x, start_y, width, height));
+	Mat result_image;
+	ROI.copyTo(result_image);
+
+	//imshow("Cropped image", result_image);
+	//waitKey(0);
+
+	return result_image;
+}
 
 void TID2013()
 {
@@ -739,13 +777,13 @@ void TID2013()
 }
 void MIDV500()
 {
-	char cPath[MAX_PATH] = "01_alb_id\\01_alb_id\\images\\TS\\"; // Путь к папке с искажёнными изображениями
+	char cPath[MAX_PATH] = "MIDV-500\\01_alb_id\\images\\TS\\"; // Путь к папке с искажёнными изображениями
 
 	string image_extention = ".tif";
 	vector<string> paths = Get_paths(cPath, image_extention); // Хранятся пути к искажённым изображениям
 
 	Mat distorted_image; // Искажённое изображение
-	Mat reference_image = imread("01_alb_id\\01_alb_id\\images\\01_alb_id.tif"); // Эталонное изображение
+	Mat reference_image = imread("MIDV-500\\01_alb_id\\images\\01_alb_id.tif"); // Эталонное изображение
 
 	for (int i = 0; i < paths.size(); i++)
 	{
@@ -762,17 +800,28 @@ void MIDV500()
 	for (int i = 0; i < paths.size(); i++)
 	{
 		distorted_image = imread(paths[i]);
+		//Mat cropped_distorted_image = Transform_image_cropping(distorted_image); // Обрезаем изображение
 		Mat cropped_distorted_image = Image_cropping(distorted_image); // Обрезаем изображение
+
 		cout << "cropped_image size = " << cropped_distorted_image.size() << endl;
 		cout << "reference image size = " << reference_image.size() << endl;
+
 		Mat reference_image_clone = reference_image.clone();
 		Mat resize_reference_image;
-		double value = (double)cropped_distorted_image.cols / reference_image.cols;
-		cout << "double = " << value << endl;
-		resize(reference_image_clone, resize_reference_image, Size(), (double)cropped_distorted_image.cols / reference_image.cols, (double)cropped_distorted_image.rows / reference_image.rows);
+
+		double resize_coef_cols = (double)cropped_distorted_image.cols / reference_image.cols;
+		double resize_coef_rows = (double)cropped_distorted_image.rows / reference_image.rows;
+
+		cout << "resize_coef_cols = " << resize_coef_cols << endl;
+		cout << "resize_coef_rows = " << resize_coef_rows << endl;
+
+		resize(reference_image_clone, resize_reference_image, Size(), resize_coef_cols, resize_coef_rows);
+		
 		cout << "resize image size = " << resize_reference_image.size() << endl;
+
 		//imshow("Result", resize_reference_image);
 		//waitKey(0);
+
 		SSIM_results[i] = SSIM(resize_reference_image, cropped_distorted_image); // Находим значение SSIM
 	}
 
