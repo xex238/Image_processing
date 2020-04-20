@@ -18,6 +18,282 @@ using namespace cv;
 using namespace std;
 using namespace rapidjson;
 
+// Решение СЛАУ методом Гаусса
+int** Sort_points(int** points)
+{
+	int** result = new int* [4];
+
+	for (int i = 0; i < 4; i++)
+	{
+		result[i] = new int[2];
+		result[i][0] = points[i][0];
+		result[i][1] = points[i][1];
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		int min = result[i][1];
+		int i_min = i;
+		for (int j = i; j < 4; j++)
+		{
+			if (result[j][1] < min)
+			{
+				min = result[j][1];
+				i_min = j;
+			}
+		}
+		int helper = result[i][0];
+		result[i][0] = result[i_min][0];
+		result[i_min][0] = helper;
+
+		helper = result[i][1];
+		result[i][1] = result[i_min][1];
+		result[i_min][1] = helper;
+	}
+
+	cout << "Отсортированные точки:" << endl;
+	for (int i = 0; i < 4; i++)
+	{
+		cout << "(" << result[i][0] << ", " << result[i][1] << ")" << endl;
+	}
+	cout << endl;
+
+	return result;
+}
+void Gauss_method(const int**& quad, const double**& square)
+{
+	int i, j;
+	int n = 8;
+	int m = 8;
+
+	float** matrix = new float* [n];
+	for (i = 0; i < n; i++)
+	{
+		matrix[i] = new float[m];
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < m; j++)
+		{
+			cout << " Element " << "[" << i + 1 << " , " << j + 1 << "]: ";
+
+			matrix[i][j] = 0.0;
+		}
+	}
+
+	for (i = 0; i < 8; i = i + 2)
+	{
+		matrix[i][0] = square[i / 2][0];
+		matrix[i][1] = square[i / 2][1];
+		matrix[i][2] = 1;
+		matrix[i][6] = -quad[i / 2][0] * square[i / 2][0];
+		matrix[i][7] = -quad[i / 2][0] * square[i / 2][1];
+
+		matrix[i + 1][3] = square[i / 2][0];
+		matrix[i + 1][4] = square[i / 2][1];
+		matrix[i + 1][5] = 1;
+		matrix[i + 1][6] = -quad[i / 2][1] * square[i / 2][0];
+		matrix[i + 1][7] = -quad[i / 2][1] * square[i / 2][1];
+	}
+
+	//выводим массив
+	cout << "matrix: " << endl;
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < m; j++)
+		{
+			cout << matrix[i][j] << " ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+
+	//Метод Гаусса
+	//Прямой ход, приведение к верхнетреугольному виду
+	float  tmp;
+	int k;
+	float* xx = new float[m];
+
+	for (i = 0; i < n; i++)
+	{
+		tmp = matrix[i][i];
+		for (j = n; j >= i; j--)
+		{
+			matrix[i][j] /= tmp;
+		}
+		for (j = i + 1; j < n; j++)
+		{
+			tmp = matrix[j][i];
+			for (k = n; k >= i; k--)
+			{
+				matrix[j][k] -= tmp * matrix[i][k];
+			}
+		}
+	}
+	/*обратный ход*/
+	xx[n - 1] = matrix[n - 1][n];
+	for (i = n - 2; i >= 0; i--)
+	{
+		xx[i] = matrix[i][n];
+		for (j = i + 1; j < n; j++)
+		{
+			xx[i] -= matrix[i][j] * xx[j];
+		}
+	}
+
+	//Выводим решения
+	for (i = 0; i < n; i++)
+	{
+		cout << xx[i] << " ";
+	}
+	cout << endl;
+
+	delete[] matrix;
+	system("pause");
+}
+// Вывод системы уравнений
+void sysout(double** a, double* y, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			cout << a[i][j] << "*x" << j;
+			if (j < n - 1)
+				cout << " + ";
+		}
+		cout << " = " << y[i] << endl;
+	}
+	return;
+}
+double* Gauss(double** a, double* y, int n)
+{
+	double* x, max;
+	int k, index;
+	const double eps = 0.00001;  // точность
+	x = new double[n];
+	k = 0;
+	while (k < n)
+	{
+		// Поиск строки с максимальным a[i][k]
+		max = abs(a[k][k]);
+		index = k;
+		for (int i = k + 1; i < n; i++)
+		{
+			if (abs(a[i][k]) > max)
+			{
+				max = abs(a[i][k]);
+				index = i;
+			}
+		}
+		// Перестановка строк
+		if (max < eps)
+		{
+			// нет ненулевых диагональных элементов
+			cout << "Решение получить невозможно из-за нулевого столбца ";
+			cout << index << " матрицы A" << endl;
+			return 0;
+		}
+		for (int j = 0; j < n; j++)
+		{
+			double temp = a[k][j];
+			a[k][j] = a[index][j];
+			a[index][j] = temp;
+		}
+		double temp = y[k];
+		y[k] = y[index];
+		y[index] = temp;
+		// Нормализация уравнений
+		for (int i = k; i < n; i++)
+		{
+			double temp = a[i][k];
+			if (abs(temp) < eps) continue; // для нулевого коэффициента пропустить
+			for (int j = 0; j < n; j++)
+				a[i][j] = a[i][j] / temp;
+			y[i] = y[i] / temp;
+			if (i == k)  continue; // уравнение не вычитать само из себя
+			for (int j = 0; j < n; j++)
+				a[i][j] = a[i][j] - a[k][j];
+			y[i] = y[i] - y[k];
+		}
+		k++;
+	}
+	// обратная подстановка
+	for (k = n - 1; k >= 0; k--)
+	{
+		x[k] = y[k];
+		for (int i = 0; i < k; i++)
+			y[i] = y[i] - a[i][k] * x[k];
+	}
+	return x;
+}
+double** Inversion(double** A, int N)
+{
+	double temp;
+
+	double** E = new double* [N];
+
+	for (int i = 0; i < N; i++)
+		E[i] = new double[N];
+
+	for (int i = 0; i < N; i++)
+		for (int j = 0; j < N; j++)
+		{
+			E[i][j] = 0.0;
+
+			if (i == j)
+				E[i][j] = 1.0;
+		}
+
+	for (int k = 0; k < N; k++)
+	{
+		temp = A[k][k];
+
+		for (int j = 0; j < N; j++)
+		{
+			A[k][j] /= temp;
+			E[k][j] /= temp;
+		}
+
+		for (int i = k + 1; i < N; i++)
+		{
+			temp = A[i][k];
+
+			for (int j = 0; j < N; j++)
+			{
+				A[i][j] -= A[k][j] * temp;
+				E[i][j] -= E[k][j] * temp;
+			}
+		}
+	}
+
+	for (int k = N - 1; k > 0; k--)
+	{
+		for (int i = k - 1; i >= 0; i--)
+		{
+			temp = A[i][k];
+
+			for (int j = 0; j < N; j++)
+			{
+				A[i][j] -= A[k][j] * temp;
+				E[i][j] -= E[k][j] * temp;
+			}
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+		for (int j = 0; j < N; j++)
+			A[i][j] = E[i][j];
+
+	for (int i = 0; i < N; i++)
+		delete[] E[i];
+
+	delete[] E;
+
+	return A;
+}
+
 vector<string> Get_paths(const LPSTR& cPath, const string& extention)
 {
 	WIN32_FIND_DATA fd;
@@ -218,39 +494,206 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 Mat Image_cropping(const Mat& mat)
 {
 	string path = "01_alb_id\\01_alb_id\\ground_truth\\TS\\TS01_01.json";
-	//ifstream my_stream(path);
 	
 	FILE* pFile = fopen(path.c_str(), "rb");
-	char buffer[65536];
+	char buffer[16384];
 	FileReadStream is(pFile, buffer, sizeof(buffer));
 
 	Document document;
 	document.ParseStream<0, UTF8<>, FileReadStream>(is);
 
-	assert(document.IsObject());
-	//assert(document.HasMember("hello")); // Нет такого поля - ошибка
-	assert(document.HasMember("quad")); // Есть такое поле - ошибки нет
-	assert(document["quad"].IsArray()); // Верно
-	assert(document["quad"][0].IsArray()); // Верно
-	//assert(document["quad"][0][0].IsDouble()); // Неверно
-	assert(document["quad"][0][0].IsInt()); // Верно
+	// Получаем координаты четырёхугольника
+	cout << "Координаты четырёхугольника:" << endl;
+	int** quad = new int* [4];
+	for (int i = 0; i < 4; i++)
+	{
+		quad[i] = new int[2];
+		quad[i][0] = document["quad"][i][0].GetInt();
+		quad[i][1] = document["quad"][i][1].GetInt();
 
-	int value = document["quad"][0][0].GetInt();
-	cout << "value = " << value << endl;
+		cout << "(" << quad[i][0] << ", " << quad[i][1] << ")" << endl;
+	}
+	cout << endl;
 
-	int start_x = document["quad"][0][0].GetInt();
-	int start_y = document["quad"][0][1].GetInt();
-	int width = document["quad"][2][0].GetInt() - document["quad"][0][0].GetInt();
-	int height = document["quad"][2][1].GetInt() - document["quad"][0][1].GetInt();
+	// Определяем координаты прямоугольника
+	int** square = new int* [4]; // (x, y) - координаты прямоугольника на исходной картинке
+	for (int i = 0; i < 4; i++)
+	{
+		square[i] = new int[2];
+	}
 
-	Mat ROI(mat, Rect(start_x, start_y, width, height));
-	Mat result_image;
-	ROI.copyTo(result_image);
+	//// Старые значения 
+	//square[0][0] = quad[0][0];
+	//square[0][1] = quad[0][1];
+	//square[1][0] = quad[2][0];
+	//square[1][1] = quad[0][1];
+	//square[2][0] = quad[2][0];
+	//square[2][1] = quad[2][1];
+	//square[3][0] = quad[0][0];
+	//square[3][1] = quad[2][1];
 
-	imshow("Cropped image", result_image);
+	// Новые значения 
+	square[0][0] = 0;
+	square[0][1] = 0;
+	square[1][0] = quad[2][0] - quad[0][0];
+	square[1][1] = 0;
+	square[2][0] = quad[2][0] - quad[0][0];
+	square[2][1] = quad[2][1] - quad[0][1];
+	square[3][0] = 0;
+	square[3][1] = quad[2][1] - quad[0][1];
+
+	// Вывод координат прямоугольника на экран
+	cout << "Координаты прямоугольника" << endl;
+	for (int i = 0; i < 4; i++)
+	{
+		cout << "(" << square[i][0] << ", " << square[i][1] << ")" << endl;
+	}
+	cout << endl;
+
+	// Решение СЛАУ
+	int n = 8;
+	double** matrix = new double* [n]; // Матрица 8*8 для нахождения коэффициентов a, b, c..
+	for (int i = 0; i < n; i++)
+	{
+		matrix[i] = new double[n];
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			matrix[i][j] = 0;
+		}
+	}
+
+	double* y = new double[n]; // Вектор для поиска решения СЛАУ
+
+	// Заполнение матрицы для решения СЛАУ
+	for (int i = 0; i < 8; i = i + 2)
+	{
+		matrix[i][0] = square[i / 2][0];
+		matrix[i][1] = square[i / 2][1];
+		matrix[i][2] = 1;
+		matrix[i][6] = -(double)quad[i / 2][0] * square[i / 2][0];
+		matrix[i][7] = -(double)quad[i / 2][0] * square[i / 2][1];
+
+		matrix[i + 1][3] = square[i / 2][0];
+		matrix[i + 1][4] = square[i / 2][1];
+		matrix[i + 1][5] = 1;
+		matrix[i + 1][6] = -(double)quad[i / 2][1] * square[i / 2][0];
+		matrix[i + 1][7] = -(double)quad[i / 2][1] * square[i / 2][1];
+
+		y[i] = quad[i / 2][0];
+		y[i + 1] = quad[i / 2][1];
+	}
+
+	sysout(matrix, y, n); // Вывод СЛАУ на экран
+
+	double* mas_result = Gauss(matrix, y, n); // Результат решения СЛАУ
+
+	// Вывод результата решения СЛАУ на экран
+	cout << "Результат решения СЛАУ:" << endl;
+	for (int i = 0; i < n; i++)
+	{
+		cout << mas_result[i] << endl;
+	}
+	cout << endl;
+
+	// Преобразование решения СЛАУ (a, b, c..) в матрицу (массив -> матрица)
+	double** matrix_result = new double* [3];
+	for (int i = 0; i < 3; i++)
+	{
+		matrix_result[i] = new double[3];
+	}
+
+	matrix_result[0][0] = mas_result[0];
+	matrix_result[0][1] = mas_result[1];
+	matrix_result[0][2] = mas_result[2];
+	matrix_result[1][0] = mas_result[3];
+	matrix_result[1][1] = mas_result[4];
+	matrix_result[1][2] = mas_result[5];
+	matrix_result[2][0] = mas_result[6];
+	matrix_result[2][1] = mas_result[7];
+	matrix_result[2][2] = 1;
+
+	// Проверка границ на правильность преобразования
+	cout << "Проверка границ на правильность преобразования" << endl;
+	for (int i = 0; i < 4; i++)
+	{
+		double W = mas_result[6] * square[i][0] + mas_result[7] * square[i][1] + 1;
+		int x = round(mas_result[0] * square[i][0] + mas_result[1] * square[i][1] + mas_result[2]); // + 188
+		int y = round(mas_result[3] * square[i][0] + mas_result[4] * square[i][1] + mas_result[5]); // + 735
+
+		cout << "(" << square[i][0] << ", " << square[i][1] << ") -> " << "(" << x << ", " << y << ")" << endl;
+	}
+	cout << endl;
+
+	Mat square_mat(square[2][1], square[2][0], mat.type());
+
+	// Более простой способ
+	for (int i = 0; i < square_mat.cols; i++)
+	{
+		for (int j = 0; j < square_mat.rows; j++)
+		{
+			double W = mas_result[6] * i + mas_result[7] * j + 1;
+			int x = round(mas_result[0] * i + mas_result[1] * j + mas_result[2]);
+			int y = round(mas_result[3] * i + mas_result[4] * j + mas_result[5]);
+
+			cout << "(x, y) = (" << x << ", " << y << ")" << endl;
+
+			for (int k = 0; k < 3; k++)
+			{
+				square_mat.at<Vec3b>(i, j)[k] = mat.at<Vec3b>(x, y)[k];
+			}
+		}
+		cout << endl;
+	}
+
+	//// Сортировка square по увеличению значений y
+	//int** sorted_square = Sort_points(quad);
+
+	//// Более сложный способ
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	for (int y = sorted_square[i][1]; y <= sorted_square[i + 1][1]; y++)
+	//	{
+	//		int x1 = 0;
+	//		int x2 = 0;
+	//		if (i == 0)
+	//		{
+	//			x1 = round(((double)((y - sorted_square[0][1]) * (sorted_square[1][0] - sorted_square[0][0])) / (sorted_square[1][1] - sorted_square[0][1])) + sorted_square[0][0]);
+	//			x2 = round((double)((y - sorted_square[0][1]) * (sorted_square[2][0] - sorted_square[0][0])) / (sorted_square[2][1] - sorted_square[0][1])) + sorted_square[0][0];
+	//		}
+	//		else if (i == 1)
+	//		{
+	//			x1 = round(((double)((y - sorted_square[1][1]) * (sorted_square[3][0] - sorted_square[1][0])) / (sorted_square[3][1] - sorted_square[1][1])) + sorted_square[1][0]);
+	//			x2 = round((double)((y - sorted_square[0][1]) * (sorted_square[2][0] - sorted_square[0][0])) / (sorted_square[2][1] - sorted_square[0][1])) + sorted_square[0][0];
+	//		}
+	//		else if (i == 2)
+	//		{
+	//			x1 = round(((double)((y - sorted_square[1][1]) * (sorted_square[3][0] - sorted_square[1][0])) / (sorted_square[3][1] - sorted_square[1][1])) + sorted_square[1][0]);
+	//			x2 = round((double)((y - sorted_square[2][1]) * (sorted_square[3][0] - sorted_square[2][0])) / (sorted_square[3][1] - sorted_square[2][1])) + sorted_square[2][0];
+	//		}
+	//		for (int x = min(x1, x2); x <= max(x1, x2); x++)
+	//		{
+	//			double W = 1.0 / (matrix_result[2][0] * quad[i][0] + matrix_result[2][1] * quad[i][1] + 1);
+	//			int x_square = round(W * (matrix_result[0][0] * x + matrix_result[0][1] * y + matrix_result[0][2]));
+	//			int y_square = round(W * (matrix_result[1][0] * x + matrix_result[1][1] * y + matrix_result[1][2]));
+
+	//			for (int j = 0; j < 3; j++)
+	//			{
+	//				cout << "(x, y) = (" << x_square - quad[0][0] << ", " << y_square - quad[0][1] << ")" << endl;
+	//				//square_mat.at<Vec3b>(x_square - quad[0][0], y_square - quad[0][1])[j] = mat.at<Vec3b>(x, y)[j];
+	//			}
+	//		}
+	//	}
+	//}
+
+	imshow("Result_image", square_mat);
 	waitKey(0);
 
-	return result_image;
+	exit(0);
+
+	return square_mat;
 }
 
 void TID2013()
@@ -319,8 +762,18 @@ void MIDV500()
 	for (int i = 0; i < paths.size(); i++)
 	{
 		distorted_image = imread(paths[i]);
-		Mat cropped_image = Image_cropping(distorted_image); // Обрезаем изображение
-		SSIM_results[i] = SSIM(reference_image, cropped_image); // Находим значение SSIM
+		Mat cropped_distorted_image = Image_cropping(distorted_image); // Обрезаем изображение
+		cout << "cropped_image size = " << cropped_distorted_image.size() << endl;
+		cout << "reference image size = " << reference_image.size() << endl;
+		Mat reference_image_clone = reference_image.clone();
+		Mat resize_reference_image;
+		double value = (double)cropped_distorted_image.cols / reference_image.cols;
+		cout << "double = " << value << endl;
+		resize(reference_image_clone, resize_reference_image, Size(), (double)cropped_distorted_image.cols / reference_image.cols, (double)cropped_distorted_image.rows / reference_image.rows);
+		cout << "resize image size = " << resize_reference_image.size() << endl;
+		//imshow("Result", resize_reference_image);
+		//waitKey(0);
+		SSIM_results[i] = SSIM(resize_reference_image, cropped_distorted_image); // Находим значение SSIM
 	}
 
 	double end_time = clock(); // Получаем итоговое время
@@ -342,6 +795,8 @@ void MIDV500()
 
 int main(int argc, char** argv)
 {
+	system("chcp 1251");
+
 	//TID2013();
 	MIDV500();
 }
