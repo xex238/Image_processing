@@ -28,7 +28,8 @@
 
 \#\#\# Результаты
 
-![image-20200422015900233](C:\Users\Дмитрий\AppData\Roaming\Typora\typora-user-images\image-20200422015900233.png)
+![image-20200422015900233](https://github.com/xex238/Image_processing/blob/master/lab_01/lab01.png)
+
 
 Рис. 1. Результаты работы программы (сверху вниз \$I\_1\$, \$G\_1\$, \$I\_2\$, \$G\_2\$)
 
