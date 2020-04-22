@@ -12,12 +12,15 @@
 ### Результаты
 
 ![](https://github.com/xex238/Image_processing/blob/master/lab_02/Cutie_cat.jpg)
+
 Рис 1. Исходное изображение
 
 ![](https://github.com/xex238/Image_processing/blob/master/lab_02/Cutie_cat_90.jpg)
+
 Рис 2. Исходное изображение с уровнем качества 90.
 
 ![](https://github.com/xex238/Image_processing/blob/master/lab_02/Cutie_cat_60.jpg)
+
 Рис 3. Исходное изображение с уровнем качества 60.
 
 ![](https://github.com/xex238/Image_processing/blob/master/lab_02/Black-white_channel_differents.jpg)
