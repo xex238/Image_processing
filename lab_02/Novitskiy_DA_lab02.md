@@ -24,9 +24,11 @@
 Рис 3. Исходное изображение с уровнем качества 60.
 
 ![](https://github.com/xex238/Image_processing/blob/master/lab_02/Black-white_channel_differents.jpg)
+
 Рис 4. Поканальные различия чёрно-белого изображения с уровнями качества 100, 90, 60 и 10 соответственно.
 
 ![](https://github.com/xex238/Image_processing/blob/master/lab_02/RGB_channel_differents.jpg)
+
 Рис 5. Поканальные различия цветного изображения с уровнями качества 100 и 10 соответственно.
 
 ### Текст программы
