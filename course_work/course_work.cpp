@@ -1,14 +1,7 @@
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
-#include <opencv2/imgcodecs/imgcodecs.hpp>
 
 #include <windows.h>
-#include <iostream>
-#include <ostream>
 #include <fstream>
-#include <vector>
 #include <ctime>
 
 #include "rapidjson/document.h"
@@ -496,7 +489,7 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 
 Mat Transform_image_cropping(const Mat& mat)
 {
-	string path = "01_alb_id\\01_alb_id\\ground_truth\\TS\\TS01_01.json";
+	string path = "MIDV-500\\01_alb_id\\ground_truth\\TS\\TS01_01.json";
 	
 	FILE* pFile = fopen(path.c_str(), "rb");
 	char buffer[16384];
@@ -525,17 +518,6 @@ Mat Transform_image_cropping(const Mat& mat)
 		square[i] = new int[2];
 	}
 
-	//// Старые значения 
-	//square[0][0] = quad[0][0];
-	//square[0][1] = quad[0][1];
-	//square[1][0] = quad[2][0];
-	//square[1][1] = quad[0][1];
-	//square[2][0] = quad[2][0];
-	//square[2][1] = quad[2][1];
-	//square[3][0] = quad[0][0];
-	//square[3][1] = quad[2][1];
-
-	// Новые значения 
 	square[0][0] = 0;
 	square[0][1] = 0;
 	square[1][0] = quad[2][0] - quad[0][0];
@@ -629,6 +611,7 @@ Mat Transform_image_cropping(const Mat& mat)
 		cout << "(" << square[i][0] << ", " << square[i][1] << ") -> " << "(" << x << ", " << y << ")" << endl;
 	}
 	cout << endl;
+	exit(0);
 
 	Mat square_mat(square[2][1], square[2][0], mat.type());
 
@@ -650,46 +633,6 @@ Mat Transform_image_cropping(const Mat& mat)
 		}
 		cout << endl;
 	}
-
-	//// Сортировка square по увеличению значений y
-	//int** sorted_square = Sort_points(quad);
-
-	//// Более сложный способ
-	//for (int i = 0; i < 3; i++)
-	//{
-	//	for (int y = sorted_square[i][1]; y <= sorted_square[i + 1][1]; y++)
-	//	{
-	//		int x1 = 0;
-	//		int x2 = 0;
-	//		if (i == 0)
-	//		{
-	//			x1 = round(((double)((y - sorted_square[0][1]) * (sorted_square[1][0] - sorted_square[0][0])) / (sorted_square[1][1] - sorted_square[0][1])) + sorted_square[0][0]);
-	//			x2 = round((double)((y - sorted_square[0][1]) * (sorted_square[2][0] - sorted_square[0][0])) / (sorted_square[2][1] - sorted_square[0][1])) + sorted_square[0][0];
-	//		}
-	//		else if (i == 1)
-	//		{
-	//			x1 = round(((double)((y - sorted_square[1][1]) * (sorted_square[3][0] - sorted_square[1][0])) / (sorted_square[3][1] - sorted_square[1][1])) + sorted_square[1][0]);
-	//			x2 = round((double)((y - sorted_square[0][1]) * (sorted_square[2][0] - sorted_square[0][0])) / (sorted_square[2][1] - sorted_square[0][1])) + sorted_square[0][0];
-	//		}
-	//		else if (i == 2)
-	//		{
-	//			x1 = round(((double)((y - sorted_square[1][1]) * (sorted_square[3][0] - sorted_square[1][0])) / (sorted_square[3][1] - sorted_square[1][1])) + sorted_square[1][0]);
-	//			x2 = round((double)((y - sorted_square[2][1]) * (sorted_square[3][0] - sorted_square[2][0])) / (sorted_square[3][1] - sorted_square[2][1])) + sorted_square[2][0];
-	//		}
-	//		for (int x = min(x1, x2); x <= max(x1, x2); x++)
-	//		{
-	//			double W = 1.0 / (matrix_result[2][0] * quad[i][0] + matrix_result[2][1] * quad[i][1] + 1);
-	//			int x_square = round(W * (matrix_result[0][0] * x + matrix_result[0][1] * y + matrix_result[0][2]));
-	//			int y_square = round(W * (matrix_result[1][0] * x + matrix_result[1][1] * y + matrix_result[1][2]));
-
-	//			for (int j = 0; j < 3; j++)
-	//			{
-	//				cout << "(x, y) = (" << x_square - quad[0][0] << ", " << y_square - quad[0][1] << ")" << endl;
-	//				//square_mat.at<Vec3b>(x_square - quad[0][0], y_square - quad[0][1])[j] = mat.at<Vec3b>(x, y)[j];
-	//			}
-	//		}
-	//	}
-	//}
 
 	imshow("Result_image", square_mat);
 	waitKey(0);
@@ -800,8 +743,8 @@ void MIDV500()
 	for (int i = 0; i < paths.size(); i++)
 	{
 		distorted_image = imread(paths[i]);
-		//Mat cropped_distorted_image = Transform_image_cropping(distorted_image); // Обрезаем изображение
-		Mat cropped_distorted_image = Image_cropping(distorted_image); // Обрезаем изображение
+		Mat cropped_distorted_image = Transform_image_cropping(distorted_image); // Обрезаем изображение
+		//Mat cropped_distorted_image = Image_cropping(distorted_image); // Обрезаем изображение
 
 		cout << "cropped_image size = " << cropped_distorted_image.size() << endl;
 		cout << "reference image size = " << reference_image.size() << endl;
