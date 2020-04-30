@@ -220,19 +220,51 @@ Point2f* Get_image_points(const string& path)
 	document.ParseStream<0, UTF8<>, FileReadStream>(is);
 
 	// Получаем координаты четырёхугольника
-	cout << "Координаты четырёхугольника:" << endl;
 	Point2f* input_quad = new Point2f[4];
 
-	cout << "input quad at method" << endl;
+	//cout << "Координаты четырёхугольника:" << endl;
+	//cout << "input quad at method" << endl;
 	for (int i = 0; i < 4; i++)
 	{
 		input_quad[i] = Point2f(document["quad"][i][0].GetInt(), document["quad"][i][1].GetInt());
 
-		cout << "(" << input_quad[i] << ")" << endl;
+		//cout << "(" << input_quad[i] << ")" << endl;
 	}
-	cout << endl;
+	//cout << endl;
 
 	return input_quad;
+}
+Point2f* Get_noise(Point2f*& quad, const int& dx, const int& dy, const int& height, const int& width)
+{
+	Point2f* result = new Point2f[4];
+
+	for (int i = 0; i < 4; i++)
+	{
+		//result[i].x = quad[i].x + round((rand() % (2 * dx)) - dx);
+		//result[i].y = quad[i].y + round((rand() % (2 * dy)) - dy);
+		result[i].x = quad[i].x + round((rand() / double(RAND_MAX)) * 2 * dx - dx);
+		result[i].y = quad[i].y + round((rand() / double(RAND_MAX)) * 2 * dy - dy);
+
+		if (result[i].x < 0)
+		{
+			result[i].x = 0;
+		}
+		if (result[i].x >= width)
+		{
+			result[i].x = width - 1;
+		}
+
+		if (result[i].y < 0)
+		{
+			result[i].y = 0;
+		}
+		if (result[i].y >= height)
+		{
+			result[i].y = height - 1;
+		}
+	}
+
+	return result;
 }
 Mat Perspective_transform(const Mat& src, const Mat& reference_image, Point2f*& input_quad)
 {
@@ -243,19 +275,19 @@ Mat Perspective_transform(const Mat& src, const Mat& reference_image, Point2f*& 
 	output_square[2] = Point2f(reference_image.cols, reference_image.rows);
 	output_square[3] = Point2f(0, reference_image.rows);
 
-	cout << "input quad" << endl;
-	for (int i = 0; i < 4; i++)
-	{
-		cout << "(" << input_quad[i] << ")" << endl;
-	}
-	cout << endl;
+	//cout << "input quad" << endl;
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	cout << "(" << input_quad[i] << ")" << endl;
+	//}
+	//cout << endl;
 
-	cout << "output square" << endl;
-	for (int i = 0; i < 4; i++)
-	{
-		cout << "(" << output_square[i] << ")" << endl;
-	}
-	cout << endl;
+	//cout << "output square" << endl;
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	cout << "(" << output_square[i] << ")" << endl;
+	//}
+	//cout << endl;
 
 	Mat lambda = Mat::zeros(src.rows, src.cols, src.type());
 
@@ -273,6 +305,64 @@ Mat Perspective_transform(const Mat& src, const Mat& reference_image, Point2f*& 
 
 	return result_image;
 }
+double* Dataset_SSIM(const vector<string>& images_paths, const vector<string>& ground_truth_paths, const Mat& reference_image, const string& file_name, const int& dx, const int& dy)
+{
+	double* SSIM_results = new double[images_paths.size()]; // Результаты сравнения изображений
+	Mat distorted_image; // Искажённое изображение
+
+	double start_time = clock(); // Засекаем время
+
+	for (int i = 0; i < images_paths.size(); i++)
+	{
+		cout << "Работаем с изображением № " << i + 1 << endl;
+
+		distorted_image = imread(images_paths[i]);
+
+		Point2f* input_quad = new Point2f[4];
+		input_quad = Get_image_points(ground_truth_paths[i]);
+
+		//cout << "input quad before noise" << endl;
+		//for (int i = 0; i < 4; i++)
+		//{
+		//	cout << "(" << input_quad[i] << ")" << endl;
+		//}
+		//cout << endl;
+
+		input_quad = Get_noise(input_quad, dx, dy, distorted_image.rows, distorted_image.cols); // "Зашумляем" координаты четырёхугольника
+
+		//cout << "input quad at cicle for" << endl;
+		//for (int i = 0; i < 4; i++)
+		//{
+		//	cout << "(" << input_quad[i] << ")" << endl;
+		//}
+		//cout << endl;
+
+		Mat result_image = Perspective_transform(distorted_image, reference_image, input_quad);
+		//imshow("Image after perspective transform", result_image);
+		//waitKey(0);
+
+		SSIM_results[i] = SSIM(reference_image, result_image);
+		//exit(0);
+	}
+
+	double end_time = clock(); // Получаем итоговое время
+
+	cout << "total running time of the algorithm = " << (end_time - start_time) / CLOCKS_PER_SEC << endl;
+
+	// Записываем результаты в файл
+	ofstream file;
+	file.open(file_name);
+	if (file.is_open())
+	{
+		for (int i = 0; i < images_paths.size(); i++)
+		{
+			file << SSIM_results[i] << endl;
+		}
+	}
+	file.close();
+
+	return SSIM_results;
+}
 
 void MIDV500()
 {
@@ -286,7 +376,6 @@ void MIDV500()
 	string ground_truth_extention = ".json";
 	vector<string> ground_truth_paths = Get_paths(ground_truth_Path, ground_truth_extention); // Хранятся пути к json файлам
 
-	Mat distorted_image; // Искажённое изображение
 	Mat reference_image = imread("MIDV-500\\01_alb_id\\images\\01_alb_id.tif"); // Эталонное изображение
 
 	if (images_paths.size() != ground_truth_paths.size())
@@ -295,50 +384,41 @@ void MIDV500()
 		exit(-1);
 	}
 
+	cout << "Всего найдено изображений - " << images_paths.size() << endl;
+	cout << endl;
+
 	for (int i = 0; i < images_paths.size(); i++)
 	{
 		images_paths[i] = images_Path + images_paths[i];
 		ground_truth_paths[i] = ground_truth_Path + ground_truth_paths[i];
 	}
 
-	double* SSIM_results = new double[images_paths.size()]; // Результаты сравнения изображений
+	int dx = 0;
+	int dy = 0;
+	double* SSIM_results = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "SSIM_results.txt", dx, dy);
 
-	double start_time = clock(); // Засекаем время
+	dx = 20;
+	dy = 20;
+	double* SSIM_results_distorted = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "SSIM_results_distorted.txt", dx, dy);
 
-	// Новый алгоритм
+	int counter = 0;
 	for (int i = 0; i < images_paths.size(); i++)
 	{
-		Point2f* input_quad = new Point2f[4];
-		input_quad = Get_image_points(ground_truth_paths[i]);
-
-		cout << "input quad at cicle for" << endl;
-		for (int i = 0; i < 4; i++)
+		if (SSIM_results[i] < SSIM_results_distorted[i])
 		{
-			cout << "(" << input_quad[i] << ")" << endl;
+			counter++;
 		}
-		cout << endl;
-
-		distorted_image = imread(images_paths[i]);
-		Mat result_image = Perspective_transform(distorted_image, reference_image, input_quad);
-
-		SSIM_results[i] = SSIM(reference_image, result_image);
 	}
-
-	double end_time = clock(); // Получаем итоговое время
-
-	cout << "total running time of the algorithm = " << (end_time - start_time) / CLOCKS_PER_SEC << endl;
-
-	// Записываем результаты в файл
-	ofstream file;
-	file.open("SSIM_results.txt");
-	if (file.is_open())
+	if (counter == 0)
 	{
-		for (int i = 0; i < images_paths.size(); i++)
-		{
-			file << SSIM_results[i] << endl;
-		}
+		cout << "Метод оценки совмещения изображений SSIM применим" << endl;
+		cout << "Все значения SSIM искажённых изображений меньше или равны неискажённым" << endl;
 	}
-	file.close();
+	else
+	{
+		cout << "Метод оценки совмещения изображений SSIM неприменим." << endl;
+		cout << counter << " значений SSIM искажённых изображений были больше, чем у неискажённых изображений" << endl;
+	}
 }
 
 int main(int argc, char** argv)
