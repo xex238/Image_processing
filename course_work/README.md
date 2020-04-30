@@ -25,18 +25,18 @@ URL --> [https://github.com/xex238/Image_processing/tree/master/course_work]
 
 ### Результаты
 
-![](C:\My_programs\8_semester\image_processing\novitskiy_d_n\build\course_work\SSIM_results.jpg)
+![](https://github.com/xex238/Image_processing/tree/master/course_work/images/SSIM_results.jpg)
 Рис. 1. Файл "SSIM_results.txt"
 
-![](C:\My_programs\8_semester\image_processing\novitskiy_d_n\build\course_work\SSIM_results_distorted.jpg)
+![](https://github.com/xex238/Image_processing/tree/master/course_work/images/SSIM_results_distorted.jpg)
 Рис. 2. Файл "SSIM_results_distorted.txt"
 
-![](C:\My_programs\8_semester\image_processing\novitskiy_d_n\build\course_work\Console_message.jpg)
+![](https://github.com/xex238/Image_processing/tree/master/course_work/images/Console_message.jpg)
 Рис. 3. Сообщение в консоли по завершении работы программы
 
-![](C:\My_programs\8_semester\image_processing\novitskiy_d_n\build\course_work\Example_without_noise.jpg)
+![](https://github.com/xex238/Image_processing/tree/master/course_work/images/Example_without_noise.jpg)
 Рис. 4. Пример неискажённого изображения
 
-![](C:\My_programs\8_semester\image_processing\novitskiy_d_n\build\course_work\Example_with_noise.jpg)
+![](https://github.com/xex238/Image_processing/tree/master/course_work/images/Example_with_noise.jpg)
 Рис. 5. Пример искажённого изображения
 
