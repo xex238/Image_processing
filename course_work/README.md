@@ -25,7 +25,7 @@ URL --> [https://github.com/xex238/Image_processing/tree/master/course_work]
 
 ### Результаты
 
-![image_1](https://github.com/xex238/Image_processing/tree/master/course_work/images/SSIM_results.jpg)
+![image_1](https://github.com/xex238/Image_processing/tree/master/course_work/images/SSIM_results.png)
 Рис. 1. Файл "SSIM_results.txt"
 
 ![image_2](https://github.com/xex238/Image_processing/tree/master/course_work/images/SSIM_results_distorted.jpg)
