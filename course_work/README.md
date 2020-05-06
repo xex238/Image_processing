@@ -28,8 +28,8 @@ URL --> [https://github.com/xex238/Image_processing/tree/master/course_work]
 
 ### Результаты
 
-![image_1](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_image.emf)
+![image_1](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_image.jpg)
 Рис. 1. Графики зависимости значения SSIM от уровня искажения изображения
 
-![image_2](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents.emf)
+![image_2](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents.jpg)
 Рис. 2. Графики зависимости значения SSIM от исходного изображения
