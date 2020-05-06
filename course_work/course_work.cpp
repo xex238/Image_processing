@@ -71,9 +71,6 @@ double Get_average(const Mat& mat)
 
 	average = average / (3 * mat.cols * mat.rows);
 
-	//cout << "average = " << average << endl;
-	//cout << endl;
-
 	return average;
 }
 double Get_standart_deviation(const Mat& mat, const double& average)
@@ -94,9 +91,6 @@ double Get_standart_deviation(const Mat& mat, const double& average)
 
 	sigma = sigma / (3 * mat.cols * mat.rows);
 	sigma = sqrt(sigma);
-
-	//cout << "sigma = " << sigma << endl;
-	//cout << endl;
 
 	return sigma;
 }
@@ -123,9 +117,6 @@ double Get_covariance(const Mat& mat_1, const Mat& mat_2, const double& average_
 
 	covariance = covariance / (3 * mat_1.cols * mat_1.rows);
 
-	//cout << "covariance = " << covariance << endl;
-	//cout << endl;
-
 	return covariance;
 }
 
@@ -149,10 +140,6 @@ double SSIM(const Mat& mat_1, const Mat& mat_2)
 	double C_1 = (K_1 * L) * (K_1 * L);
 	double C_2 = (K_2 * L) * (K_2 * L);
 	double C_3 = C_2 / 2;
-
-	//cout << "C_1 = " << C_1 << endl;
-	//cout << "C_2 = " << C_2 << endl;
-	//cout << endl;
 
 	double result_SSIM = ((2 * average_1 * average_2 + C_1) * (2 * covariance + C_2)) / ((average_1 * average_1 + average_2 * average_2 + C_1) * (sigma_1 * sigma_1 + sigma_2 * sigma_2 + C_2));
 
@@ -182,7 +169,6 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 	{
 		for (int j = 0; j < mat_1.rows - size_window_x; j++)
 		{
-			//cout << "i = " << i << ", j = " << j << endl;
 
 			Mat ROI_1(mat_1, Rect(i, j, size_window_y, size_window_x));
 			Mat croppedImage_1;
@@ -191,10 +177,6 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 			Mat ROI_2(mat_2, Rect(i, j, size_window_y, size_window_x));
 			Mat croppedImage_2;
 			ROI_2.copyTo(croppedImage_2);
-
-			//imshow("image_1", croppedImage_1);
-			//imshow("image_2", croppedImage_2);
-			//waitKey(0);
 
 			result_SSIM += SSIM(croppedImage_1, croppedImage_2);
 		}
@@ -209,7 +191,6 @@ void Window_SSIM(const Mat& mat_1, const Mat& mat_2)
 	cout << endl;
 }
 
-// Методы нового алгоритма
 Point2f* Get_image_points(const string& path)
 {
 	FILE* pFile = fopen(path.c_str(), "rb");
@@ -222,15 +203,10 @@ Point2f* Get_image_points(const string& path)
 	// Получаем координаты четырёхугольника
 	Point2f* input_quad = new Point2f[4];
 
-	//cout << "Координаты четырёхугольника:" << endl;
-	//cout << "input quad at method" << endl;
 	for (int i = 0; i < 4; i++)
 	{
 		input_quad[i] = Point2f(document["quad"][i][0].GetInt(), document["quad"][i][1].GetInt());
-
-		//cout << "(" << input_quad[i] << ")" << endl;
 	}
-	//cout << endl;
 
 	return input_quad;
 }
@@ -240,8 +216,6 @@ Point2f* Get_noise(Point2f*& quad, const int& dx, const int& dy, const int& heig
 
 	for (int i = 0; i < 4; i++)
 	{
-		//result[i].x = quad[i].x + round((rand() % (2 * dx)) - dx);
-		//result[i].y = quad[i].y + round((rand() % (2 * dy)) - dy);
 		result[i].x = quad[i].x + round((rand() / double(RAND_MAX)) * 2 * dx - dx);
 		result[i].y = quad[i].y + round((rand() / double(RAND_MAX)) * 2 * dy - dy);
 
@@ -266,6 +240,41 @@ Point2f* Get_noise(Point2f*& quad, const int& dx, const int& dy, const int& heig
 
 	return result;
 }
+Point2f* Get_noise_const(Point2f*& quad, const int& dx, const int& dy, const int& height, const int& width)
+{
+	Point2f* result = new Point2f[4];
+
+	result[3].x = quad[3].x + dx;
+	result[3].y = quad[3].y + dy;
+	result[0].x = quad[0].x + dx;
+	result[0].y = quad[0].y + dy;
+	result[1].x = quad[1].x - dx;
+	result[1].y = quad[1].y - dy;
+	result[2].x = quad[2].x - dx;
+	result[2].y = quad[2].y - dy;
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (result[i].x < 0)
+		{
+			result[i].x = 0;
+		}
+		if (result[i].x >= width)
+		{
+			result[i].x = width - 1;
+		}
+		if (result[i].y < 0)
+		{
+			result[i].y = 0;
+		}
+		if (result[i].y >= height)
+		{
+			result[i].y = height - 1;
+		}
+	}
+
+	return result;
+}
 Mat Perspective_transform(const Mat& src, const Mat& reference_image, Point2f*& input_quad)
 {
 	// Определяем координаты прямоугольника
@@ -275,20 +284,6 @@ Mat Perspective_transform(const Mat& src, const Mat& reference_image, Point2f*& 
 	output_square[2] = Point2f(reference_image.cols, reference_image.rows);
 	output_square[3] = Point2f(0, reference_image.rows);
 
-	//cout << "input quad" << endl;
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	cout << "(" << input_quad[i] << ")" << endl;
-	//}
-	//cout << endl;
-
-	//cout << "output square" << endl;
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	cout << "(" << output_square[i] << ")" << endl;
-	//}
-	//cout << endl;
-
 	Mat lambda = Mat::zeros(src.rows, src.cols, src.type());
 
 	lambda = getPerspectiveTransform(input_quad, output_square);
@@ -296,15 +291,9 @@ Mat Perspective_transform(const Mat& src, const Mat& reference_image, Point2f*& 
 	Mat result_image = Mat(reference_image.rows, reference_image.cols, reference_image.type());
 	warpPerspective(src, result_image, lambda, result_image.size());
 
-	//imshow("input_image", src);
-	//imshow("output_image", result_image);
-	//waitKey(0);
-
-	//imwrite("input_image.jpg", src);
-	//imwrite("output_image.jpg", result_image);
-
 	return result_image;
 }
+
 double* Dataset_SSIM(const vector<string>& images_paths, const vector<string>& ground_truth_paths, const Mat& reference_image, const string& file_name, const int& dx, const int& dy)
 {
 	double* SSIM_results = new double[images_paths.size()]; // Результаты сравнения изображений
@@ -321,28 +310,11 @@ double* Dataset_SSIM(const vector<string>& images_paths, const vector<string>& g
 		Point2f* input_quad = new Point2f[4];
 		input_quad = Get_image_points(ground_truth_paths[i]);
 
-		//cout << "input quad before noise" << endl;
-		//for (int i = 0; i < 4; i++)
-		//{
-		//	cout << "(" << input_quad[i] << ")" << endl;
-		//}
-		//cout << endl;
-
-		input_quad = Get_noise(input_quad, dx, dy, distorted_image.rows, distorted_image.cols); // "Зашумляем" координаты четырёхугольника
-
-		//cout << "input quad at cicle for" << endl;
-		//for (int i = 0; i < 4; i++)
-		//{
-		//	cout << "(" << input_quad[i] << ")" << endl;
-		//}
-		//cout << endl;
+		input_quad = Get_noise_const(input_quad, dx, dy, distorted_image.rows, distorted_image.cols); // "Зашумляем" координаты четырёхугольника
 
 		Mat result_image = Perspective_transform(distorted_image, reference_image, input_quad);
-		//imshow("Image after perspective transform", result_image);
-		//waitKey(0);
 
 		SSIM_results[i] = SSIM(reference_image, result_image);
-		//exit(0);
 	}
 
 	double end_time = clock(); // Получаем итоговое время
@@ -355,6 +327,52 @@ double* Dataset_SSIM(const vector<string>& images_paths, const vector<string>& g
 	if (file.is_open())
 	{
 		for (int i = 0; i < images_paths.size(); i++)
+		{
+			file << SSIM_results[i] << endl;
+		}
+	}
+	file.close();
+
+	return SSIM_results;
+}
+double* Distorted_images_SSIM(const Mat& image, const Point2f* quad, const Mat& reference_image, const string& file_name)
+{
+	double* SSIM_results = new double[20]; // Результаты сравнения изображений
+
+	Mat temp_distorted_image; // Искажённое изображение
+
+	double start_time = clock(); // Засекаем время
+
+	for (int i = 0; i < 20; i++)
+	{
+		cout << "Работаем с изображением № " << i + 1 << endl;
+
+		temp_distorted_image = image.clone();
+		Point2f* distorted_quad = new Point2f[4];
+
+		for (int j = 0; j < 4; j++)
+		{
+			distorted_quad[j].x = quad[j].x;
+			distorted_quad[j].y = quad[j].y;
+		}
+
+		distorted_quad = Get_noise_const(distorted_quad, (i + 1) * 4, (i + 1) * 4, image.rows, image.cols);
+
+		Mat result_image = Perspective_transform(temp_distorted_image, reference_image, distorted_quad);
+
+		SSIM_results[i] = SSIM(reference_image, result_image);
+	}
+
+	double end_time = clock(); // Получаем итоговое время
+
+	cout << "total running time of the algorithm = " << (end_time - start_time) / CLOCKS_PER_SEC << endl;
+
+	// Записываем результаты в файл
+	ofstream file;
+	file.open(file_name);
+	if (file.is_open())
+	{
+		for (int i = 0; i < 20; i++)
 		{
 			file << SSIM_results[i] << endl;
 		}
@@ -395,29 +413,29 @@ void MIDV500()
 
 	int dx = 0;
 	int dy = 0;
-	double* SSIM_results = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "SSIM_results.txt", dx, dy);
+	double* SSIM_results = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "results\\SSIM_results.txt", dx, dy);
 
 	dx = 20;
 	dy = 20;
-	double* SSIM_results_distorted = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "SSIM_results_distorted.txt", dx, dy);
+	double* SSIM_results_20 = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "results\\SSIM_results_20_new.txt", dx, dy);
 
-	int counter = 0;
-	for (int i = 0; i < images_paths.size(); i++)
+	dx = 50;
+	dy = 50;
+	double* SSIM_results_50 = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "results\\SSIM_results_50_new.txt", dx, dy);
+
+	dx = 100;
+	dy = 100;
+	double* SSIM_results_100 = Dataset_SSIM(images_paths, ground_truth_paths, reference_image, "results\\SSIM_results_100_new.txt", dx, dy);
+
+	for (int i = 1; i < 5; i++)
 	{
-		if (SSIM_results[i] < SSIM_results_distorted[i])
-		{
-			counter++;
-		}
-	}
-	if (counter == 0)
-	{
-		cout << "Метод оценки совмещения изображений SSIM применим" << endl;
-		cout << "Все значения SSIM искажённых изображений меньше или равны неискажённым" << endl;
-	}
-	else
-	{
-		cout << "Метод оценки совмещения изображений SSIM неприменим." << endl;
-		cout << counter << " значений SSIM искажённых изображений были больше, чем у неискажённых изображений" << endl;
+		Mat distorted_image = imread(images_paths[i]);
+		Point2f* input_quad = new Point2f[4];
+		input_quad = Get_image_points(ground_truth_paths[i]);
+
+		string file_path = "results\\SSIM_results_image_" + to_string(i + 1) + ".txt";
+
+		double* SSIM_results = Distorted_images_SSIM(distorted_image, input_quad, reference_image, file_path);
 	}
 }
 
