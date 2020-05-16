@@ -29,8 +29,20 @@ URL --> [https://github.com/xex238/Image_processing/tree/master/course_work]
 
 ### Результаты
 
-![image_1](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_image.jpg)
-Рис. 1. Графики зависимости значения SSIM от уровня искажения изображения
+![image_1](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents_1.jpg)
+Рис. 1. Графики зависимости значения SSIM от исходного изображения (документ 01_alb_id)
 
-![image_2](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents.jpg)
-Рис. 2. Графики зависимости значения SSIM от исходного изображения
+![image_2](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents_2.jpg)
+Рис. 2. Графики зависимости значения SSIM от исходного изображения (документ 02_aut_drvlic_new)
+
+![image_3](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents_3.jpg)
+Рис. 3. Графики зависимости значения SSIM от исходного изображения (документ 03_aut_id_old)
+
+![image_4](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents_4.jpg)
+Рис. 4. Графики зависимости значения SSIM от исходного изображения (документ 04_aut_id)
+
+![image_5](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents_5.jpg)
+Рис. 5. Графики зависимости значения SSIM от исходного изображения (документ 05_aze_passport)
+
+![image_6](https://github.com/xex238/Image_processing/blob/master/course_work/images/SSIM_differents_6.jpg)
+Рис. 6. Графики зависимости значения SSIM от исходного изображения (документ 06_bra_passport)
